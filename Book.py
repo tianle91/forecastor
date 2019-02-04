@@ -16,10 +16,10 @@ class Book(object):
         bidprx = self.df.filter(self.df.side == 'Buy')
         bestask = askprx.agg({'price': 'min'}).collect()[0]['min(price)']
         bestbid = bidprx.agg({'price': 'max'}).collect()[0]['max(price)']
-        self.touch = (bestbid, bestask)
+        self.touch = (float(bestbid), float(bestask))
 
 
-    def features(self):
+    def features(self, q=None):
         '''return orderbook features (i.e. spread, midprice, bestbid, bestask)'''
         bestbid, bestask = self.touch
         spread = bestask - bestbid
@@ -51,16 +51,16 @@ class Book(object):
         return Book(newbk)
 
 
-    def depthview(self, plotlims=(.9, 1.1)):
+    def depthview(self, midppct=.5):
         '''return dict to construct depth view'''
         features = self.features()
         midp = features['midprice']
 
-        bk = self.pandas
+        bk = self.toPandas()
         isbuy = bk['side'] == 'Buy'
         issell = bk['side'] == 'Sell'
 
-        plotlow, plothigh = plotlims
+        plotlow, plothigh = (midppct, 1+midppct)
         plotprice = np.logical_and(bk['price'] > plotlow*midp, bk['price'] < plothigh*midp)
         bk = bk.loc[plotprice, :]
 
