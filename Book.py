@@ -50,7 +50,7 @@ class Book(object):
         newbk = newbk.withColumnRenamed('sum(book_change)', 'qdelta')
         newbk = newbk.withColumn('quantity', newbk.qold + newbk.qdelta)
         newbk = newbk.select([oldbk.side, oldbk.price, 'quantity'])
-        newbk = newbk.filter('quantity > 0')
+        newbk = newbk.filter('quantity > 0').orderBy('price')
         return Book(newbk)
 
 
