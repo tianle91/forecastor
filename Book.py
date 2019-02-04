@@ -33,7 +33,7 @@ class Book(object):
         return out
 
 
-    def updatebook(self, ordersdf, copy=True):
+    def updatebook(self, ordersdf):
         '''return new orderbook updated with ordersdf'''
 
         # aggregate new orders to get change in orderbook
@@ -41,14 +41,18 @@ class Book(object):
 
         # join new orders with change qty to old orderbook
         oldbk = self.df
-        newbk = oldbk.join(bookdelta, (oldbk.price == bookdelta.price) & (oldbk.side == bookdelta.side))
+        newbk = oldbk.join(other=bookdelta, 
+                           on=(oldbk.price == bookdelta.price) & (oldbk.side == bookdelta.side),
+                           how='outer')
 
         # rename colnames and update to get new orderbook
         newbk = newbk.withColumnRenamed('quantity', 'qold')
         newbk = newbk.withColumnRenamed('sum(book_change)', 'qdelta')
         newbk = newbk.withColumn('quantity', newbk.qold + newbk.qdelta)
-        newbk = newbk.select(['side', 'price', 'quantity'])
+        newbk = newbk.select([oldbk.side, oldbk.price, 'quantity'])
+        newbk = newbk.filter('quantity > 0')
         return Book(newbk)
+
 
 
     def depthview(self, midppct=.5):

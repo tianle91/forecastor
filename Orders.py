@@ -13,39 +13,37 @@ class Orders(object):
         '''return count of counttype in order table
         Arguments:
             ordersdf: table of orders
-            ordtype: 'new' or 'cancelled'
+            ordtype: 'new' or 'notnew'
             side: 'Buy' or 'Sell' or 'All'
             counttype: 'orders' or 'quantity' or 'qperorder'
             touch: None or (bestbuy, bestask)
         '''
-        ordersdf = self.pandas
-        subsetbool = np.repeat(True, len(ordersdf))
-    
+        s = ''
+
         # ordtype
         if ordtype == 'new':
-            subsetbool = ordersdf['book_change'] > 0
-        elif ordtype == 'cancelled':
-            subsetbool = ordersdf['book_change'] < 0
+            s += 'book_change > 0'
+        elif ordtype == 'notnew':
+            s += 'book_change < 0'
         else:
             raise ValueError('invalid orddtype argument: %s' % ordtype)
         
         # touch
         if touch is not None:
-            bestbuy, bestask = touch
-            isattouch = np.logical_or(ordersdf['price'] >= bestbuy, ordersdf['price'] <= bestask)
-            subsetbool = np.logical_and(subsetbool, isattouch)
+            s += 'AND price BEWEEN %s %s' % touch
 
         # side
         if side in ['Buy', 'Sell']:
-            subsetbool = np.logical_and(subsetbool, ordersdf['side'] == side)
+            s += 'AND side == %s' % side
         elif side == 'All':
             pass
         else:
             raise ValueError('invalid side argument: %s' % side)
         
         # do the subset
-        df = ordersdf.loc[subsetbool, :]
-        
+        df = self.df.filter(s)
+
+        # IPR !!!
         # counttype
         if counttype == 'orders':
             return len(df)
@@ -60,7 +58,7 @@ class Orders(object):
     def features(self, touchval):
         '''return dict of features'''
         argl = [{'ordtype': ordtype, 'side': side, 'counttype': counttype, 'touch': touch}
-                for ordtype in ['new', 'cancelled']
+                for ordtype in ['new', 'notnew']
                 for side in ['Buy', 'Sell', 'All']
                 for counttype in ['orders', 'quantity', 'qperorder']
                 for touch in [None, touchval]]
