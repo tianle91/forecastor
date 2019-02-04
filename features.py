@@ -156,7 +156,7 @@ class Orders(object):
             raise ValueError('invalid counttype argument: %s' % counttype)
     
 
-    def orders_features(self, touchval):
+    def features(self, touchval):
         '''return dict of features'''
         argl = [{'ordtype': ordtype, 'side': side, 'counttype': counttype, 'touch': touch}
                 for ordtype in ['new', 'cancelled']
@@ -171,79 +171,66 @@ class Orders(object):
         return out
 
 
-# !!!!
-# IPR
 
 class Trades(object):
 
-def trades(symbol, timestamp0, timestamp1, venue='TSX', lazy=False):
-    '''return table of trades'''
-    
-    if not (timestamp0 <= timestamp1):
-        raise ValueError('not (timestamp0:%s <= timestamp1:%s)!' % (timestamp0, timestamp1))
-    
-    s = '''SELECT
-            trade_size AS quantity, 
-            price
-        FROM trades 
-        WHERE symbol='%s' 
-            AND date_string='%s' 
-            AND time >  timestamp '%s'
-            AND time <= timestamp '%s'
-            AND venue = '%s'
-            AND listing_exchange = '%s'
-            AND price > 0
-            AND price < 99999
-        ORDER BY price ASC'''
-    
-    sargs = (
-        symbol,
-        timestamp0.split()[0],
-        timestamp0,
-        timestamp1,
-        venue, 
-        venue)
+    def __init__(self, symbol, timestamp0, timestamp1, venue='TSX'):
+        '''initialize self.df'''
+
+        if not (timestamp0 <= timestamp1):
+            raise ValueError('not (timestamp0:%s <= timestamp1:%s)!' % (timestamp0, timestamp1))
+            
+        s = '''SELECT
+                trade_size AS quantity, 
+                price
+            FROM trades 
+            WHERE symbol='%s' 
+                AND date_string='%s' 
+                AND time >  timestamp '%s'
+                AND time <= timestamp '%s'
+                AND venue = '%s'
+                AND listing_exchange = '%s'
+                AND price > 0
+                AND price < 99999
+            ORDER BY price ASC'''
         
-    df = spark.sql(s % sargs)
-    
-    if not lazy:
-        df = df.toPandas()
+        sargs = (
+            symbol,
+            timestamp0.split()[0],
+            timestamp0,
+            timestamp1,
+            venue, 
+            venue)
+            
+        self.df = spark.sql(s % sargs)
+        self.makePandas()
+
+
+    def makePandas(self):
+        '''make pandas version of self.df'''
+        df = self.df.toPandas()
         df['price'] = df['price'].astype(float)
         df['quantity'] = df['quantity'].astype(float)
-
-    return df
+        self.pandas = df
     
 
-def trades_features(tradesdf):
-    ''' return dict of features (i.e mean, stdev, traded_count, traded_qty)'''
-    prx = tradesdf['price']
-    qty = tradesdf['quantity']
-    
-    mean = 0
-    stdev = 0
-    tradeq = 0
-    tradecount = 0
-    qtypertrade = 0
-    
-    if len(prx) > 0:
-        mean =  np.average(prx, weights=qty)
-        stdev = np.sqrt(np.average(np.power(prx, 2), weights=qty) - mean**2)
-        tradeq = np.sum(qty)
-        tradecount = len(prx)
-        qtypertrade = tradeq/tradecount
+    def features(self):
+        '''return dict of features'''
+        tradesdf = self.pandas
+        prx = tradesdf['price']
+        qty = tradesdf['quantity']
         
-    return {'mean': mean, 'stdev': stdev, 'traded_count': tradecount, 'traded_qty': tradeq, 'meanq_pertrade': qtypertrade}
-
-
-def features(symbol, timestamp0, timestamp1):
-    '''return dict of all features'''
-    
-    oldbk = orderbook(symbol, timestamp0)
-    neworders = orders(symbol, timestamp0, timestamp1)
-    newtrades = trades(symbol, timestamp0, timestamp1)
-
-    out = {'bk0': orderbook_features(oldbk),
-           'neworders': orders_features(neworders, get_touch(oldbk)), 
-           'newtrades': trades_features(newtrades)}
-           
-    return out
+        mean = 0
+        stdev = 0
+        tradeq = 0
+        tradecount = 0
+        qtypertrade = 0
+        
+        if len(prx) > 0:
+            mean =  np.average(prx, weights=qty)
+            stdev = np.sqrt(np.average(np.power(prx, 2), weights=qty) - mean**2)
+            tradeq = np.sum(qty)
+            tradecount = len(prx)
+            qtypertrade = tradeq/tradecount
+            
+        return {'mean': mean, 'stdev': stdev, 'traded_count': tradecount, 'traded_qty': tradeq, 'meanq_pertrade': qtypertrade}
