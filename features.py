@@ -226,3 +226,27 @@ def features(symbol, timestamp0, timestamp1):
            'newtrades': trades_features(newtrades)}
            
     return out
+    
+    
+def daily_features(date, symbol, freq='1min', verbose=0):
+    ''' return dict of features for date=date
+    Arguments:
+        date: pd.datetime object
+        symbol: str of symbol
+        freq: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-offset-aliases
+    '''
+    date = date.strftime('%Y-%m-%d')
+    dtstart = date + ' 09:30:00'
+    dtend = date + ' 16:00:00'
+    timestamps = pd.date_range(dtstart, dtend, freq=freq)
+    
+    dtformat = '%Y-%m-%d %H:%M:%S.000'
+    out = {}
+    for tdex in range(1, len(timestamps)):
+        timestamp0 = timestamps[tdex-1].strftime(dtformat)
+        timestamp1 = timestamps[tdex].strftime(dtformat)
+        if verbose > 0:
+            print ('timestamp0: %s, timestamp1: %s' % (timestamp0, timestamp1))
+        out[timestamps[tdex]] = features(symbol, timestamp0, timestamp1)
+        
+    return out
