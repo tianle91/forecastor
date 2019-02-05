@@ -46,16 +46,22 @@ orderstimes = ordersday.select('time_discrete').distinct().orderBy('time_discret
 orderstimes = orderstimes.toPandas()['time_discrete']
 orderstimes
 
+# testing for single time period
 ordersday_t = ordersday.filter(ordersday.time_discrete == '2019-01-22 12:00:00')
 #ordersday_t = ordersday.filter(ordersday.time_discrete == tradingdt[0].strftime(tfmt))
 ordersday_t.show(5)
 
-# get all the book changes
+
+
+# all orders filtered by time_discrete
+
 resl_ordersdf = [ordersday.filter(ordersday.time_discrete == tdt.strftime(tfmt)) for tdt in orderstimes]
+
+# get all the book changes
 resl_bkch = map(lambda x: Orders(x).bkchange(), resl_ordersdf)
 
 # update to get all orderbooks
-bktemp = Book(symbol, timestamp)
+bktemp = Book(symbol, orderstimes[0].strftime(tfmt))
 bklist = [bkini]
 for bkch in resl_bkch:
     bktemp = bktemp.updatebook(bkch)
