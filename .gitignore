@@ -104,3 +104,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+features_trades.py
+features_orders.py
+Orders.py
+Book.py

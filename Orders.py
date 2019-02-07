@@ -1,4 +1,4 @@
-#import pyspark as spark
+import pyspark as spark
 from  pyspark.sql.functions import abs
 import numpy as np
 import pandas as pd
@@ -45,8 +45,9 @@ class Orders(object):
         return df.toPandas()
 
     def counttype(self, filstr, ctype='Number'):
-        '''return metric
-        Arguments:
+        '''return count or sum of self.df filtered by filstr
+
+        Args:
             filstr: str to pass to df.filter()
             ctype: str in ['Number', 'Volume', 'AvgVolume']
         '''
@@ -68,7 +69,8 @@ class Orders(object):
 
     def features(self, touchval):
         '''return dict of new order features
-        Arguments:
+
+        Args:
             touchval: tuple of (bestbid, bestask)
         '''
         args = [{'ordtype': ordtype, 'side': side, 'ctype': ctype, 'touch': touch}
