@@ -1,6 +1,3 @@
-%pyspark
-
-
 #import pyspark as spark
 import numpy as np
 import pandas as pd

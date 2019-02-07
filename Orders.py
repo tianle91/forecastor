@@ -1,5 +1,3 @@
-%pyspark
-
 #import pyspark as spark
 from  pyspark.sql.functions import abs
 import numpy as np

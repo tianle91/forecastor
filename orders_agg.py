@@ -1,13 +1,17 @@
-#import pyspark as spark
+%pyspark
+
+import numpy as np
 import pandas as pd
+#import pyspark as spark
+#from Book import Book
+#from Orders import Orders
 
-from Book import Book
-from Orders import Orders
 
+# set symbol and date_string
 symbol = 'TD'
 date_string = '2019-01-22'
-venue = 'TSX'
 
+# set time discretization to 1min
 # timestamp = '2019-01-23 09:30:00.000'
 timestamptrunc = 16
 tfmt = '%Y-%M-%D %H:%m:%s'
@@ -42,23 +46,26 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
 ordersday = dailyorders(symbol, date_string, venue, timestamptrunc)
 ordersday.show(5)
 
+
+# all discretized times with orders
 orderstimes = ordersday.select('time_discrete').distinct().orderBy('time_discrete')
 orderstimes = orderstimes.toPandas()['time_discrete']
 orderstimes
 
+
 # testing for single time period
-ordersday_t = ordersday.filter(ordersday.time_discrete == '2019-01-22 12:00:00')
-#ordersday_t = ordersday.filter(ordersday.time_discrete == tradingdt[0].strftime(tfmt))
+#ordersday_t = ordersday.filter(ordersday.time_discrete == '2019-01-22 12:00:00')
+ordersday_t = ordersday.filter(ordersday.time_discrete == orderstimes[0].strftime(tfmt))
 ordersday_t.show(5)
 
 
-
 # all orders filtered by time_discrete
-
 resl_ordersdf = [ordersday.filter(ordersday.time_discrete == tdt.strftime(tfmt)) for tdt in orderstimes]
+
 
 # get all the book changes
 resl_bkch = map(lambda x: Orders(x).bkchange(), resl_ordersdf)
+
 
 # update to get all orderbooks
 bktemp = Book(symbol, orderstimes[0].strftime(tfmt))

@@ -1,7 +1,0 @@
-row-by-row on new orders
-
-1. to update orderbook
-	update orderbook deltas
-
-2. generate features
-	counts / sum_qty
