@@ -62,7 +62,7 @@ def features(tradesdf):
     return out
 
 
-def splittedtrades(symbol, date_string, venue, verbose=0):
+def tradesbyminutes(symbol, date_string, venue, verbose=0):
     '''return dict of {trade_times_inminutes: trades_by_times}'''
 
 
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     date_string = '2019-01-22'
     venue = 'TSX'
 
-    tradesdict = splittedtrades(symbol, date_string, venue, verbose=1)
+    tradesdict = tradesbyminutes(symbol, date_string, venue, verbose=1)
 
     # get all features
     resl_features = map(features, list(tradesdict))

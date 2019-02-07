@@ -30,7 +30,7 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
     return spark.sql(s % sargs).cache()
 
 
-def splittedorders(symbol, date_string, venue):
+def ordersbyminutes(symbol, date_string, venue):
     '''return dict of {order_times_inminutes: orders_by_times}'''
 
     # set time discretization to 1min
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     date_string = '2019-01-22'
     venue = 'TSX'
 
-    ordersdict = splittedorders(symbol, date_string, venue)
+    ordersdict = ordersbyminutes(symbol, date_string, venue)
 
     # get all the book changes
     resl_bkch = map(lambda x: Orders(x).bkchange(), list(ordersdict))
