@@ -62,40 +62,41 @@ def features(tradesdf):
     return out
 
 
-if __name__ == '__main__':
+def splittedtrades(symbol, date_string, venue, verbose=0):
+    '''return dict of {trade_times_inminutes: trades_by_times}'''
 
-    # set symbol and date_string
-    symbol = 'TD'
-    date_string = '2019-01-22'
 
     # set time discretization to 1min
     # timestamp = '2019-01-23 09:30:00.000'
     timestamptrunc = 16
     tfmt = '%Y-%M-%D %H:%m:%s'
 
-    # trading timestamps
-    dailydt = pd.date_range(date_string+' 09:30', date_string+' 16:00', freq='1min')
-    print (dailydt.head())
-
-
     tradesdf = dailytrades(symbol, date_string, venue, timestamptrunc)
-    tradesdf.show(5)
-
+    if verbose > 0:
+        tradesdf.show(5)
 
     # all discretized times with trades
     tradestimes = tradesdf.select('time_discrete').distinct().orderBy('time_discrete')
     tradestimes = tradestimes.toPandas()['time_discrete']
-    print (tradestimes.head())
+    if verbose > 0:
+        print (tradestimes.head())
+
+    out = {}
+    for tradetime in tradestimes:
+        tradetstr = tradetime.strftime(tfmt)
+        out[tradetime] = tradesdf.filter(tradesdf.time_discrete == tradetstr)
+
+    return out
 
 
-    # testing for single time period
-    tradesdf_t = tradesdf.filter(tradesdf.time_discrete == tradestimes[0].strftime(tfmt))
-    tradesdf_t.show(5)
+if __name__ == '__main__':
 
+    # set symbol and date_string
+    symbol = 'TD'
+    date_string = '2019-01-22'
+    venue = 'TSX'
 
-    # all orders filtered by time_discrete
-    resl_tradesdf = [tradesdf.filter(tradesdf.time_discrete == tdt.strftime(tfmt)) for tdt in tradestimes]
-
+    tradesdict = splittedtrades(symbol, date_string, venue, verbose=1)
 
     # get all features
-    resl_features = map(features, resl_tradesdf)
+    resl_features = map(features, list(tradesdict))

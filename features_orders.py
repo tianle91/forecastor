@@ -30,46 +30,44 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
     return spark.sql(s % sargs).cache()
 
 
-if __name__ == '__main__':
-
-    # set symbol and date_string
-    symbol = 'TD'
-    date_string = '2019-01-22'
+def splittedorders(symbol, date_string, venue):
+    '''return dict of {order_times_inminutes: orders_by_times}'''
 
     # set time discretization to 1min
     # timestamp = '2019-01-23 09:30:00.000'
     timestamptrunc = 16
     tfmt = '%Y-%M-%D %H:%m:%s'
 
-    # trading timestamps
-    dailydt = pd.date_range(date_string+' 09:30', date_string+' 16:00', freq='1min')
-    print (dailydt.head())
-
-
     ordersdf = dailyorders(symbol, date_string, venue, timestamptrunc)
     ordersdf.show()
-
 
     # all discretized times with orders
     orderstimes = ordersdf.select('time_discrete').distinct().orderBy('time_discrete')
     orderstimes = orderstimes.toPandas()['time_discrete']
     print (orderstimes.head())
 
+    out = {}
+    for ordertime in ordertimes:
+        ordtstr = ordertime.strftime(tfmt)
+        out[ordertime] = ordersdf.filter(ordersdf.time_discrete == ordtstr)
 
-    # testing for single time period
-    ordersdf_t = ordersdf.filter(ordersdf.time_discrete == orderstimes[0].strftime(tfmt))
-    ordersdf_t.show(5)
+    return out
 
 
-    # all orders filtered by time_discrete
-    resl_ordersdf = [ordersdf.filter(ordersdf.time_discrete == tdt.strftime(tfmt)) for tdt in orderstimes]
+if __name__ == '__main__':
 
+    # set symbol and date_string
+    symbol = 'TD'
+    date_string = '2019-01-22'
+    venue = 'TSX'
+
+    ordersdict = splittedorders(symbol, date_string, venue)
 
     # get all the book changes
-    resl_bkch = map(lambda x: Orders(x).bkchange(), resl_ordersdf)
+    resl_bkch = map(lambda x: Orders(x).bkchange(), list(ordersdict))
 
 
-    # update to get all orderbooks
+    # update recursively to get all orderbooks
     bktemp = Book(symbol, orderstimes[0].strftime(tfmt))
     bklist = [bkini]
     for bkch in resl_bkch:
