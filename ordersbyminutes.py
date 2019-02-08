@@ -27,29 +27,38 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
         date_string,
         venue)
         
-    return spark.sql(s % sargs).cache()
+    return spark.sql(s % sargs)
 
 
-def ordersbyminutes(symbol, date_string, venue):
+def ordersbyminutes(symbol, date_string, venue, verbose=0):
     '''return dict of {order_times_inminutes: orders_by_times}'''
 
     # set time discretization to 1min
     # timestamp = '2019-01-23 09:30:00.000'
     timestamptrunc = 16
-    tfmt = '%Y-%M-%D %H:%m:%s'
 
     ordersdf = dailyorders(symbol, date_string, venue, timestamptrunc)
-    ordersdf.show()
+    ordersdf.cache()
+
+    if verbose > 0:
+        print ('ordersdf:')
+        ordersdf.show(2)
 
     # all discretized times with orders
     orderstimes = ordersdf.select('time_discrete').distinct().orderBy('time_discrete')
     orderstimes = orderstimes.toPandas()['time_discrete']
-    print (orderstimes.head())
+
+    if verbose > 0:
+        print ('orderstimes:')
+        print (orderstimes.head(2))
 
     out = {}
-    for ordertime in ordertimes:
-        ordtstr = ordertime.strftime(tfmt)
-        out[ordertime] = ordersdf.filter(ordersdf.time_discrete == ordtstr)
+    for dt in orderstimes:
+        dtstr = str(dt)
+
+        if verbose > 1:
+            print ('dt:', dt, 'dtstr:', dtstr)
+        out[dt] = ordersdf.filter('''time_discrete == '%s' ''' % (dtstr))
 
     return out
 
@@ -64,14 +73,15 @@ if __name__ == '__main__':
     ordersdict = ordersbyminutes(symbol, date_string, venue)
 
     # get all the book changes
-    resl_bkch = map(lambda x: Orders(x).bkchange(), list(ordersdict))
-
+    resl = map(lambda kv: (kv[0], Orders(kv[1]).bkchange()), list(ordersdict.items()))
+    resdict = {k: v for k, v in resl}
+    orderstimes = list(resdict.keys())
 
     # update recursively to get all orderbooks
-    bktemp = Book(symbol, orderstimes[0].strftime(tfmt))
+    bktemp = Book(symbol, str(orderstimes[0]))
     bklist = [bkini]
-    for bkch in resl_bkch:
-        bktemp = bktemp.updatebook(bkch)
+    for dt in orderstimes:
+        bktemp = bktemp.updatebook(resdict[dt])
         bklist.append(bktemp)
 
     resl_ordordbk = zip((resl_ordersdf, bklist[:-1]))
