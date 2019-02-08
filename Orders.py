@@ -37,7 +37,8 @@ def filterstr(ordtype='New', side='All', touch=None):
 class Orders(object):
 
     def __init__(self, sparkdf):
-        self.sparkdf = sparkdf.cache()
+        self.sparkdf = sparkdf
+        self.sparkdf.cache()
 
     def bkchange(self):
         '''return pd.dataframe of orderbook changes'''
