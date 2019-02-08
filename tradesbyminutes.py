@@ -23,7 +23,7 @@ def dailytrades(symbol, date_string, venue, timestamptrunc):
         ORDER BY time_discrete ASC'''
     
     sargs = (
-        timestamptrunc
+        timestamptrunc,
         symbol,
         date_string)
         
