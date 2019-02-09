@@ -74,18 +74,26 @@ if __name__ == '__main__':
     print ('len(ordersdict):', len(ordersdict))
 
     # get all the book changes
-    resl = map(lambda kv: (kv[0], Orders(kv[1]).bkchange()), list(ordersdict.items()))
-    resdict = {k: v for k, v in resl}
-    orderstimes = list(resdict.keys())
+    bkchresl = map(lambda kv: (kv[0], Orders(kv[1]).bkchange()), list(ordersdict.items()))
+    bkchresdict = {k: v for k, v in bkchresl}
+    orderstimes = list(bkchresdict.keys())
+    orderstimes.sort()
     # 5mins
 
     # update recursively to get all orderbooks
     exec(open('Book.py').read())
-    bktemp = Book(symbol, str(orderstimes[0]))
-    bklist = [bktemp]
+    bk0df = orderbook(symbol, str(orderstimes[0]), venue=venue)
+    bk0 = Book(bk0df)
+    bkresdict = {orderstimes[0]: bk0}
     for dt in orderstimes:
-        bktemp = bktemp.updatebook(resdict[dt])
-        bklist.append(bktemp)
+        bktemp = bktemp.updatebook(bkchresdict[dt])
+        bkresdict[dt] = bktemp
+    #
+
+
+    # !!! IPR
+    # package up ordersdf
+
     resl_ordordbk = zip((resl_ordersdf, bklist[:-1]))
 
 
