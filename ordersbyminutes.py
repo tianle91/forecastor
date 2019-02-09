@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     ordersdict = ordersbyminutes(symbol, date_string, venue)
     print ('len(ordersdict):', len(ordersdict))
-    # 
+    # 1min
 
     # get all the book changes
     resl = map(lambda kv: (kv[0], Orders(kv[1]).bkchange()), list(ordersdict.items()))
@@ -81,12 +81,12 @@ if __name__ == '__main__':
     # 5mins
 
     # update recursively to get all orderbooks
+    exec(open('Book.py').read())
     bktemp = Book(symbol, str(orderstimes[0]))
     bklist = [bkini]
     for dt in orderstimes:
         bktemp = bktemp.updatebook(resdict[dt])
         bklist.append(bktemp)
-
     resl_ordordbk = zip((resl_ordersdf, bklist[:-1]))
 
 
