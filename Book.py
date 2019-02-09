@@ -41,11 +41,11 @@ def orderbook(symbol, timestamp, venue='TSX'):
 
 class Book(object):
 
-    def __init__(self, symbol, timestamp, venue='TSX'):
+    def __init__(self, df):
         '''df has columns (quantity, side, price)
         takes some time to run, bu should only need to be done once.
         '''
-        self.df = orderbook(symbol, timestamp, venue)
+        self.df = df
 
         # make touch
         self.touch = (0, 99999)
