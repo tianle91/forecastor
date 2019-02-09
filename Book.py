@@ -80,8 +80,6 @@ class Book(object):
     def updatebook(self, bkchanges):
         '''return new Book updated with bkchanges'''
 
-        bkchanges = bkchanges.toPandas()
-
         if len(bkchanges) > 0:
             oldbk = self.df
             bkdfnew = oldbk.merge(bkchanges, on=['price', 'side'], how='outer').fillna(0)
