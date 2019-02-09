@@ -38,7 +38,7 @@ def ordersbyminutes(symbol, date_string, venue, verbose=0):
     timestamptrunc = 16
 
     ordersdf = dailyorders(symbol, date_string, venue, timestamptrunc)
-    ordersdf.cache()
+    #ordersdf.cache()
 
     if verbose > 0:
         print ('ordersdf:')
