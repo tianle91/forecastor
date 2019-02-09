@@ -92,7 +92,6 @@ class Orders(object):
                 s += '_at_touch'
             return s
 
-        self.sparkdf.cache()
         out = {}
         for arg in args:
             filstr = filterstr(arg['ordtype'], arg['side'], arg['touch'])
