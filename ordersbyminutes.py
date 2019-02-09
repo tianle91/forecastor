@@ -85,10 +85,11 @@ if __name__ == '__main__':
     bk0df = orderbook(symbol, str(orderstimes[0]), venue=venue)
     bk0 = Book(bk0df)
     bkresdict = {orderstimes[0]: bk0}
+
+    bktemp = bk0
     for dt in orderstimes:
         bktemp = bktemp.updatebook(bkchresdict[dt])
         bkresdict[dt] = bktemp
-    #
 
 
     # !!! IPR
