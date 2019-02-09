@@ -74,9 +74,9 @@ def tradesbyminutes(symbol, date_string, venue, verbose=0):
     # timestamp = '2019-01-23 09:30:00.000'
     timestamptrunc = 16
 
+    # get all trades in day
     tradesdf = dailytrades(symbol, date_string, venue, timestamptrunc)
     tradesdf.cache()
-
     if verbose > 0:
         print ('\ntradesdf:')
         tradesdf.show(2)
@@ -84,7 +84,6 @@ def tradesbyminutes(symbol, date_string, venue, verbose=0):
     # all discretized times with trades
     tradestimes = tradesdf.select('time_discrete').distinct().orderBy('time_discrete')
     tradestimes = tradestimes.toPandas()['time_discrete']
-    
     if verbose > 0:
         print ('\ntradetimes:')
         print (tradestimes.head(2))
