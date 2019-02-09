@@ -4,6 +4,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+def tofloat(df, colnames):
+    for colname in colnames:
+        df[colname] = df[colname].astype(float)
+    return df
+
+
 def orderbook(symbol, timestamp, venue='TSX'):
     '''return pandas table of order book'''
     s = '''SELECT
@@ -31,12 +37,7 @@ def orderbook(symbol, timestamp, venue='TSX'):
     # save as temp table, return where qty>0
     df.createOrReplaceTempView('orderbook')
     df = spark.sql('SELECT * FROM orderbook WHERE quantity > 0')
-    
-    df = df.toPandas()
-    df['price'] = df['price'].astype(float)
-    df['quantity'] = df['quantity'].astype(float)
-        
-    return df
+    return tofloat(df.toPandas(), ['quantity', 'price'])
 
 
 class Book(object):
@@ -45,13 +46,13 @@ class Book(object):
         '''df has columns (quantity, side, price)
         takes some time to run, bu should only need to be done once.
         '''
-        self.df = df
+        self.df = tofloat(df, ['quantity', 'price'])
 
         # make touch
         self.touch = (0, 99999)
-        if len(self.df) > 0:
-            bestbid = max(self.df.loc[self.df['side'] == 'Buy', 'price'])
-            bestask = min(self.df.loc[self.df['side'] == 'Sell', 'price'])
+        if len(df) > 0:
+            bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
+            bestask = min(df.loc[df['side'] == 'Sell', 'price'])
             self.touch = bestbid, bestask
 
 
