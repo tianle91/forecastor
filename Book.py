@@ -49,7 +49,7 @@ class Book(object):
 
         # make touch
         self.touch = (0, 99999)
-        if len(df) > 0:
+        if len(self.df) > 0:
             bestbid = max(self.df.loc[self.df['side'] == 'Buy', 'price'])
             bestask = min(self.df.loc[self.df['side'] == 'Sell', 'price'])
             self.touch = bestbid, bestask
