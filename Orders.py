@@ -4,6 +4,12 @@ import numpy as np
 import pandas as pd
 
 
+def tofloat(df, colnames):
+    for colname in colnames:
+        df[colname] = df[colname].astype(float)
+    return df
+
+
 def filterstr(ordtype='New', side='All', touch=None):
     '''return filter condition string'''
     s = ''
@@ -37,10 +43,7 @@ def filterstr(ordtype='New', side='All', touch=None):
 def bkchange(sparkdf):
     '''return pd.dataframe of orderbook changes'''
     df = sparkdf.groupBy('side', 'price').agg({'book_change': 'sum'})
-    df = df.toPandas()
-    df['price'] = df['price'].astype(float)
-    df['sum(book_change)'] = df['sum(book_change)'].astype(float)
-    return df
+    return tofloat(df.toPandas(), ['price', 'sum(book_change)'])
 
 
 class Orders(object):
