@@ -91,12 +91,10 @@ if __name__ == '__main__':
 
     # get all features
     # order features need orderbook touch as input
-
     def worker(x):
         orderstemp, bktemp = x
         bkfeaturestemp = bktemp.features()
         touchval = (bkfeaturestemp['bestbid'], bkfeaturestemp['bestask'])
         return {'orderbook': bkfeaturestemp,
                 'orders': Orders(orderstemp).features(touchval)}
-
     resl_features = map(worker, resl_ordordbk)
