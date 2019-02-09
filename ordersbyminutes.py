@@ -31,7 +31,7 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
 
 
 def ordersbyminutes(symbol, date_string, venue, verbose=0):
-    '''return dict of {order_times_inminutes: orders_by_times}'''
+    '''return (orderstimes, ordersdf_for_date_string)'''
 
     # set time discretization to 1min
     # timestamp = '2019-01-23 09:30:00.000'
