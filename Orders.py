@@ -37,6 +37,8 @@ def filterstr(ordtype='New', side='All', touch=None):
 def bkchange(sparkdf):
     '''return pd.dataframe of orderbook changes'''
     df = sparkdf.groupBy('side', 'price').agg({'book_change': 'sum'})
+    df['price'] = df['price'].astype(float)
+    df['sum(book_change)'] = df['sum(book_change)'].astype(float)
     return df.toPandas()
 
 
