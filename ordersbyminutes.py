@@ -7,11 +7,26 @@ from Orders import Orders
 
 def dailyorders(symbol, date_string, venue, timestamptrunc):
 
+    # s = '''SELECT
+    #         SUM(book_change) AS quantity, 
+    #         side, 
+    #         price
+    #     FROM orderbook_tsx 
+    #     WHERE symbol='%s' 
+    #         AND date_string='%s' 
+    #         AND time < timestamp '%s'
+    #         AND venue = '%s'
+    #         AND price > 0
+    #         AND price < 99999
+    #     GROUP BY side, price 
+    #     ORDER BY price ASC'''
+
     s = '''SELECT
             book_change, 
             side, 
             price,
             reason,
+            time,
             CAST(LEFT(CAST(time AS STRING), %s) AS timestamp) AS time_discrete
         FROM orderbook_tsx 
         WHERE symbol='%s' 
@@ -31,7 +46,7 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
 
 
 def ordersbyminutes(symbol, date_string, venue, verbose=0):
-    '''return (orderstimes, ordersdf_for_date_string)'''
+    '''return (orderstimes, ordersdf_date_string)'''
 
     # set time discretization to 1min
     # timestamp = '2019-01-23 09:30:00.000'
