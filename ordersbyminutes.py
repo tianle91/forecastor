@@ -88,7 +88,8 @@ if __name__ == '__main__':
 
     bktemp = bk0
     for dt in orderstimes:
-        bktemp = bktemp.updatebook(bkchresdict[dt])
+        print ('dt:', dt)
+        bktemp = bktemp.updatebook(bkchresdict[dt], verbose=1)
         bkresdict[dt] = bktemp
 
 

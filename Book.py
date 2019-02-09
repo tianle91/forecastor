@@ -77,7 +77,7 @@ class Book(object):
         return out
 
 
-    def updatebook(self, bkchanges):
+    def updatebook(self, bkchanges, verbose=0):
         '''return new Book updated with bkchanges'''
 
         if len(bkchanges) > 0:
@@ -89,6 +89,8 @@ class Book(object):
             bkdfnew = bkdfnew.sort_values('price')
             return Book(bkdfnew[['side', 'price', 'quantity']])
         else:
+        	if verbose > 0:
+	        	print ('no change!')
             return self
 
 
