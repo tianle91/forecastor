@@ -38,7 +38,6 @@ def ordersbyminutes(symbol, date_string, venue, verbose=0):
     timestamptrunc = 16
 
     ordersdf = dailyorders(symbol, date_string, venue, timestamptrunc)
-    #ordersdf.cache()
 
     if verbose > 0:
         print ('ordersdf:')
@@ -52,15 +51,17 @@ def ordersbyminutes(symbol, date_string, venue, verbose=0):
         print ('orderstimes:')
         print (orderstimes.head(2))
 
-    out = {}
-    for dt in orderstimes:
-        dtstr = str(dt)
+    return orderstimes, ordersdf
 
-        if verbose > 1:
-            print ('dt:', dt, 'dtstr:', dtstr)
-        out[dt] = ordersdf.filter('''time_discrete == '%s' ''' % (dtstr))
+    # out = {}
+    # for dt in orderstimes:
+    #     dtstr = str(dt)
 
-    return out
+    #     if verbose > 1:
+    #         print ('dt:', dt, 'dtstr:', dtstr)
+    #     out[dt] = ordersdf.filter('''time_discrete == '%s' ''' % (dtstr))
+
+    # return out
 
 
 if __name__ == '__main__':
@@ -70,18 +71,15 @@ if __name__ == '__main__':
     date_string = '2019-01-22'
     venue = 'TSX'
 
-    ordersdict = ordersbyminutes(symbol, date_string, venue)
-    print ('len(ordersdict):', len(ordersdict))
 
-    # get all the book changes
-    bkchresl = map(lambda kv: (kv[0], Orders(kv[1]).bkchange()), list(ordersdict.items()))
-    bkchresdict = {k: v for k, v in bkchresl}
-    orderstimes = list(bkchresdict.keys())
-    orderstimes.sort()
-    # 5mins
+    orderstimes, ordersdf = ordersbyminutes(symbol, date_string, venue)
+    print ('len(orderstimes):', len(orderstimes))
+
+
+    exec(open('Book.py').read())
+    exec(open('Orders.py').read())
 
     # update recursively to get all orderbooks
-    exec(open('Book.py').read())
     bk0df = orderbook(symbol, str(orderstimes[0]), venue=venue)
     bk0 = Book(bk0df)
     bkresdict = {orderstimes[0]: bk0}
@@ -89,7 +87,8 @@ if __name__ == '__main__':
     bktemp = bk0
     for dt in orderstimes:
         print ('dt:', dt)
-        bktemp = bktemp.updatebook(bkchresdict[dt], verbose=1)
+        dftemp = ordersdf.filter('''time_discrete == '%s' ''' % dt)
+        bktemp = bktemp.updatebook(bkchange(dftemp), verbose=1)
         bkresdict[dt] = bktemp
 
 
