@@ -53,7 +53,10 @@ class Book(object):
         if len(df) > 0:
             bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
             bestask = min(df.loc[df['side'] == 'Sell', 'price'])
-            self.touch = bestbid, bestask
+            if bestbid < bestask:
+                self.touch = bestbid, bestask
+            else:
+                raise ValueError('bestbid >= bestask. df has unmatched orders!')
 
 
     def features(self, q=None):
