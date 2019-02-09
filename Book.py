@@ -13,7 +13,7 @@ def orderbook(symbol, timestamp, venue='TSX'):
         FROM orderbook_tsx 
         WHERE symbol='%s' 
             AND date_string='%s' 
-            AND time <= timestamp '%s'
+            AND time < timestamp '%s'
             AND venue = '%s'
             AND price > 0
             AND price < 99999
@@ -89,8 +89,8 @@ class Book(object):
             bkdfnew = bkdfnew.sort_values('price')
             return Book(bkdfnew[['side', 'price', 'quantity']])
         else:
-        	if verbose > 0:
-	        	print ('no change!')
+            if verbose > 0:
+                print ('no change!')
             return self
 
 
