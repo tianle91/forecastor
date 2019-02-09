@@ -34,16 +34,19 @@ def filterstr(ordtype='New', side='All', touch=None):
     return s
 
 
+def bkchange(sparkdf):
+    '''return pd.dataframe of orderbook changes'''
+    df = sparkdf.groupBy('side', 'price').agg({'book_change': 'sum'})
+    return df.toPandas()
+
+
 class Orders(object):
 
     def __init__(self, sparkdf):
         self.sparkdf = sparkdf
-        self.sparkdf.cache()
 
     def bkchange(self):
-        '''return pd.dataframe of orderbook changes'''
-        df = self.sparkdf.groupBy('side', 'price').agg({'book_change': 'sum'})
-        return df.toPandas()
+        return bkchange(self.sparkdf)
 
     def counttype(self, filstr, ctype='Number'):
         '''return count or sum of self.df filtered by filstr
@@ -89,6 +92,7 @@ class Orders(object):
                 s += '_at_touch'
             return s
 
+        self.sparkdf.cache()
         out = {}
         for arg in args:
             filstr = filterstr(arg['ordtype'], arg['side'], arg['touch'])
