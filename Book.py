@@ -85,10 +85,13 @@ class Book(object):
         '''return new Book updated with bkchanges'''
 
         if len(bkchanges) > 0:
-            oldbk = self.df
+            oldbk = self.df.copy()
+            # merge on ['price', 'side']
             bkdfnew = oldbk.merge(bkchanges, on=['price', 'side'], how='outer').fillna(0)
             bkdfnew = bkdfnew.rename(columns={'quantity': 'oldq'})
+            # add changes to quantity
             bkdfnew['quantity'] = bkdfnew['oldq'] + bkdfnew['sum(book_change)']
+            # filter by nonzero 
             bkdfnew = bkdfnew.loc[bkdfnew['quantity'] > 0, :]
             bkdfnew = bkdfnew.sort_values('price')
             return Book(bkdfnew[['side', 'price', 'quantity']])
