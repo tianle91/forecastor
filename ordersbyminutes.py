@@ -27,7 +27,8 @@ def dailyorders(symbol, date_string, venue, timestamptrunc):
             price,
             reason,
             time,
-            CAST(LEFT(CAST(time AS STRING), %s) AS timestamp) AS time_discrete
+            #CAST(LEFT(CAST(time AS STRING), %s) AS timestamp) AS time_discrete
+            TRUNC(time, 'mm') AS time_discrete
         FROM orderbook_tsx 
         WHERE symbol='%s' 
             AND date_string='%s' 
