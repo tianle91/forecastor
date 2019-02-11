@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import orders_functions as ordfn
 from Book import Book
 
 
@@ -11,12 +12,9 @@ def dailyorders(symbol, date_string, venue):
             price,
             reason,
             time
-        FROM orderbook_tsx 
+        FROM orderbook_mscs 
         WHERE symbol = '%s' 
             AND date_string = '%s' 
-            AND venue = '%s'
-            AND price > 0
-            AND price < 99999
         ORDER BY time ASC'''
     sargs = (symbol, date_string, venue)
     return spark.sql(s%sargs) 
@@ -25,8 +23,8 @@ def dailyorders(symbol, date_string, venue):
 def orderbook(ordersdf, timestamp):
     '''return table of orderbook'''
     tstr = str(timestamp)
-    df = ordersdf.filter('''time < '%s' ''' % (tstr))
-    bk = df.groupby(['side', 'price']).agg({'book_change': 'sum'})
+    bk = ordersdf.filter('''time < timestamp '%s' ''' % (tstr))
+    bk = bk.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
     return bk.orderBy('price')
 
@@ -61,12 +59,11 @@ if __name__ == '__main__':
     dfday = dailyorders(symbol, date_string, venue)
     dfday.cache()
 
-    # some debug/ testing stuff
-    #dfday.show(5) # 1min
-    #bktemp = orderbook(dfday, tradingtimes[0]).toPandas() # 1min
-    #Book(bktemp, verbose=1).features() # len(df): 913, 1min
-
     bkfeatures = {}
     for dt in tradingtimes:
         print ('doing dt:', dt)
         bkfeatures[dt] = Book(orderbook(dfday, dt).toPandas()).features()
+
+    ordfeatures = {}
+    for dt in tradingtimes:
+        print ('doing dt:', dt)
