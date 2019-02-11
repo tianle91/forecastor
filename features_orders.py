@@ -48,9 +48,9 @@ if __name__ == '__main__':
 
     
     #freq = '1H'
-    #freq = '30min'
+    freq = '30min'
     #freq = '5min'
-    freq = '1min'
+    #freq = '1min'
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' 09:30:01'),
         end = pd.to_datetime(date_string + ' 16:00:01'),
@@ -80,6 +80,7 @@ if __name__ == '__main__':
         dtprev = dt
         print ('dt: %s done in: %s \n\tfeatures: %s' % (dt, time.time()-t0, bkft))
         #print ('dt: %s done in: %s' % (dt, time.time()-t0))
+    # 3sec*14 = 1min
 
 
     # orders features
@@ -103,3 +104,4 @@ if __name__ == '__main__':
         dtprev = dt
         print ('dt: %s norders: %s done in: %s \n\tfeatures: %s' % (dt, norders, time.time()-t0, ordft))
         #print ('dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0))
+    # 7min
