@@ -25,9 +25,9 @@ class Book(object):
     def __init__(self, df):
 
         if type(df) is not pd.DataFrame:
-            return TypeError('df is not pd.DataFrame!')
+            raise TypeError('df is not pd.DataFrame!')
         if not {'side', 'price', 'quantity'}.issubset(df.columns):
-            return ValueError('df does not have side, price, quantity columns!')
+            raise ValueError('df does not have side, price, quantity columns!')
 
         self.df = df
         self.touch = touch(df)
