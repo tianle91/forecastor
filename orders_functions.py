@@ -41,7 +41,7 @@ def aggtype(df, filstr=None):
     df = df.withColumn('absch', abs(df.book_change))
     sumq = df.agg({'absch': 'sum'}).collect()[0]['sum(absch)']
 
-    return {'Number': nrow, 'Volume': sumq, 'AvgVolume': sumq/nrow}
+    return {'Number': nrow, 'Volume': sumq}
 
 
 def features(df, touchval):
