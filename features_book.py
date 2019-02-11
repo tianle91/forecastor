@@ -25,7 +25,7 @@ def dailyorders(symbol, date_string, venue):
 def orderbook(ordersdf, timestamp):
     '''return table of orderbook'''
     tstr = str(timestamp)
-    df = ordersdf.filter('''time <= '%s' ''' % (tstr))
+    df = ordersdf.filter('''time < '%s' ''' % (tstr))
     bk = df.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
     return bk.orderBy('price')
@@ -45,17 +45,28 @@ if __name__ == '__main__':
 
     symbol = 'TD'
     venue = 'TSX'
-
     date_string = '2019-02-04'
-    freq = '1min'
+    
+    freq = '1H'
+    #freq = '30min'
+    #freq = '5min'
+    #freq = '1min'
+    #freq = '500ms'
+    #freq = '1ms'
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' 09:30'),
         end = pd.to_datetime(date_string + ' 16:30'),
         freq = freq)
 
     dfday = dailyorders(symbol, date_string, venue)
-    dfday.show(5) # 1min
+    dfday.cache()
 
-    features = {}
-    features['orderbook'] = [Book(orderbook(dfday, dt).toPandas()).features() for dt in tradingtimes]
+    # some debug/ testing stuff
+    #dfday.show(5) # 1min
+    #bktemp = orderbook(dfday, tradingtimes[0]).toPandas() # 1min
+    #Book(bktemp, verbose=1).features() # len(df): 913, 1min
 
+    bkfeatures = {}
+    for dt in tradingtimes:
+        print ('doing dt:', dt)
+        bkfeatures[dt] = Book(orderbook(dfday, dt).toPandas()).features()
