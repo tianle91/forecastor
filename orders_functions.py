@@ -78,8 +78,8 @@ def features(df, touchval):
     out = {}
     for arg in args:
         params = {
-            'df': df
-            'filstr': filstr(arg['ordtype'], arg['side'], arg['touch'])
+            'df': df,
+            'filstr': filstr(arg['ordtype'], arg['side'], arg['touch']),
             'type': arg['ctype']
         }
         out[namer(**arg)] = aggtype(**params)
