@@ -1,14 +1,10 @@
 import pandas as pd
 import numpy as np
+
+import sparkdfutils as utils
 import orders_functions as ordfn
 from Book import Book
 
-
-def utctimestamp(dt):
-    s = dt.tz_convert('UTC')
-    s = s.strftime('%Y-%m-%d %H:%M:%S')
-    return s
-    
 
 def dailyorders(symbol, date_string, venue):
     '''return table of orders'''
@@ -38,22 +34,6 @@ def orderbook(ordersdf, timestamp, verbose=0):
     if verbose > 0:
         print ('len:', bk.count())
     return bk
-
-
-def orderinterval(ordersdf, timestamp0, timestamp1=None, verbose=0):
-    '''return orders between timestamp0 and timestamp1'''
-    if timestamp1 is None:
-        s = '''time < '%s' ''' % (utctimestamp(timestamp0))
-    else:
-        if not (timestamp0 < timestamp1):
-            raise ValueError('not (timestamp0 < timestamp1)!')
-        t0, t1 = utctimestamp(timestamp0), utctimestamp(timestamp1)
-        s = '''time BETWEEN '%s' AND '%s' ''' % (t0, t1)
-    
-    df = ordersdf.filter(s)
-    if verbose > 0:
-        print ('len:', df.count())
-    return df
 
 
 if __name__ == '__main__':
@@ -88,6 +68,6 @@ if __name__ == '__main__':
     ordfeatures[dtprev] = None
     for dt in tradingtimes[1:]:
         print ('doing dtprev:%s dt:%s' % (dtprev, dt))
-        dftemp = orderinterval(dfday, dtprev, dt)
+        dftemp = utils.subsetbytime(dfday, dtprev, dt)
         touchtemp = bkfeatures[dtprev]['bestbid'], bkfeatures[dtprev]['bestask']
         ordfeatures[dt] = ordfn.features(dftemp, touchtemp)
