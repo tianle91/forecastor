@@ -77,7 +77,11 @@ def features(df, touchval):
 
     out = {}
     for arg in args:
-        filstr = filstr(arg['ordtype'], arg['side'], arg['touch'])
-        out[namer(**arg)] = self.counttype(filstr, arg['ctype'])
+        params = {
+            'df': df
+            'filstr': filstr(arg['ordtype'], arg['side'], arg['touch'])
+            'type': arg['ctype']
+        }
+        out[namer(**arg)] = aggtype(**params)
 
     return out
