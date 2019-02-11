@@ -22,12 +22,16 @@ def filstr(ordtype=None, side=None, touch=None):
     
     if touch is not None:
         bestbid, bestask = touch
-        s += '''AND price BETWEEN %s AND %s ''' % (bestbid, bestask)
+        if len(s) == 0:
+            s += 'AND '
+        s += '''price BETWEEN %s AND %s ''' % (bestbid, bestask)
 
     if side is None:
         pass
     elif side in ['Buy', 'Sell']:
-        s += '''AND side == '%s' ''' % (side)
+        if len(s) == 0:
+            s += 'AND '
+        s += '''side == '%s' ''' % (side)
     else:
         raise ValueError('invalid side argument: %s' % side)
     
