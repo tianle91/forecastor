@@ -44,5 +44,8 @@ if __name__ == '__main__':
         freq = freq)
 
     dfday = dailyorders(symbol, date_string, venue)
+    dfday.show(5) # 1min
+
     features = {}
     features['orderbook'] = [Book(orderbook(dfday, dt).toPandas()).features() for dt in tradingtimes]
+    
