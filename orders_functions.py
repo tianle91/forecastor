@@ -55,7 +55,7 @@ def features(df, touchval):
         for side in ['Buy', 'Sell', 'All']
         for touch in [None, touchval]]
 
-    def namer(ordtype, side, ctype, touch):
+    def namer(ordtype, side, touch):
         s = ordtype
         s += '-' + side + '-Orders'
         if touch is not None:
