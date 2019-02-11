@@ -24,7 +24,7 @@ def dailyorders(symbol, date_string, venue):
 
 def orderbook(ordersdf, timestamp, verbose=0):
     '''return table of orderbook'''
-    tstr = utctimestamp(timestamp)
+    tstr = utils.utctimestamp(timestamp)
     bk = ordersdf.filter('''time < timestamp '%s' ''' % (tstr))
     bk = bk.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
@@ -47,9 +47,9 @@ if __name__ == '__main__':
 
     
     #freq = '1H'
-    freq = '30min'
+    #freq = '30min'
     #freq = '5min'
-    #freq = '1min'
+    freq = '1min'
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' 09:30'),
         end = pd.to_datetime(date_string + ' 16:00'),
@@ -59,15 +59,18 @@ if __name__ == '__main__':
 
     bkfeatures = {}
     for dt in tradingtimes:
-        print ('doing dt:', dt)
+        t0 = time.time()
         bkfeatures[dt] = Book(orderbook(dfday, dt).toPandas()).features()
+        print ('dt:', dt, 'done in:', time.time()-t0)
 
 
     ordfeatures = {}
     dtprev = tradingtimes[0]
     ordfeatures[dtprev] = None
     for dt in tradingtimes[1:]:
-        print ('doing dtprev:%s dt:%s' % (dtprev, dt))
+        t0 = time.time()
         dftemp = utils.subsetbytime(dfday, dtprev, dt)
         touchtemp = bkfeatures[dtprev]['bestbid'], bkfeatures[dtprev]['bestask']
         ordfeatures[dt] = ordfn.features(dftemp, touchtemp)
+        dtprev = dt
+        print ('dtprev:%s dt:%s, done in:%s' % (dtprev, dt, time.time()-t0))
