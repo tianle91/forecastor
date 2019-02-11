@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 def touch(df):
     '''return tuple of (bestbid, bestask)'''
-
     if len(df) > 0:
         bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
         bestask = min(df.loc[df['side'] == 'Sell', 'price'])
@@ -23,13 +22,13 @@ def touch(df):
 class Book(object):
 
     def __init__(self, df):
-
+        '''initialize with dataframe and touch'''
         if type(df) is not pd.DataFrame:
             raise TypeError('df is not pd.DataFrame!')
         if not {'side', 'price', 'quantity'}.issubset(df.columns):
             raise ValueError('df does not have side, price, quantity columns!')
 
-        self.df = df
+        self.df = df.astype({'price': float, 'quantity': float})
         self.touch = touch(df)
 
 
