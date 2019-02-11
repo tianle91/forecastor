@@ -58,3 +58,43 @@ def features(df):
            'meanq_pertrade': qtypertrade}
 
     return out
+
+
+if __name__ == '__main__':
+
+    symbol = 'TD'
+    venue = 'TSX'
+    date_string = '2019-02-04'
+
+    dfday = dailytrades(symbol, date_string)
+    dfday.cache()
+
+    
+    #freq = '1H'
+    #freq = '30min'
+    #freq = '5min'
+    freq = '1min'
+    tradingtimes = pd.date_range(
+        start = pd.to_datetime(date_string + ' 09:30'),
+        end = pd.to_datetime(date_string + ' 16:00'),
+        tz = 'US/Eastern',
+        freq = freq)
+
+
+    trxfeatures = {}
+    # no new trades for first timestamp
+    dtprev = tradingtimes[0]
+    trxfeatures[dtprev] = None
+
+    for dt in tradingtimes[1:]:
+        t0 = time.time()
+        dftemp = utils.subsetbytime(dfday, dtprev, dt)
+        ntrades = dftemp.count()
+        
+        trxfttemp = None
+        if ntrades > 0:
+            trxfttemp = features(dftemp)
+            
+        trxfeatures[dt] = trxfttemp
+        dtprev = dt
+        print ('dtprev:%s dt:%s, done in:%s' % (dtprev, dt, time.time()-t0))
