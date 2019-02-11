@@ -104,4 +104,4 @@ if __name__ == '__main__':
         dtprev = dt
         print ('dt: %s norders: %s done in: %s \n\tfeatures: %s' % (dt, norders, time.time()-t0, ordft))
         #print ('dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0))
-    # 7min
+    # 30sec*14 = 10min
