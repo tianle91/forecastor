@@ -77,7 +77,7 @@ class Book(object):
         issell = bk['side'] == 'Sell'
 
         # only plot somewhere around bestbid, bestask
-        plotlow, plothigh = (viewpct*bestbid, (1.+viewpct)*bestask)
+        plotlow, plothigh = (viewpct*bestbid, (1.+(1.-viewpct))*bestask)
         isplot = np.logical_and(bk['price'] > plotlow, bk['price'] < plothigh)
         bk = bk.loc[isplot, :]
 
