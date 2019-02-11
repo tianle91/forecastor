@@ -57,20 +57,45 @@ if __name__ == '__main__':
         freq = freq)
 
 
+    # orderbook features
     bkfeatures = {}
+    # keep track of previous orderbook features
+    dtprev = tradingtimes[0]
+    bkftprev = Book(orderbook(dfday, dtprev).toPandas()).features()
+
     for dt in tradingtimes:
         t0 = time.time()
-        bkfeatures[dt] = Book(orderbook(dfday, dt).toPandas()).features()
+        bkft = bkftprev
+
+        if dt > dtprev:
+            # only when dt has advanced past tradingtimes[0]
+            norders =  utils.subsetbytime(dfday, dtprev, dt).count()
+            if norders > 0:
+                # only when new orders arrived
+                bkft = Book(orderbook(dfday, dt).toPandas()).features()
+        
+        bkfeatures[dt] = bkft
+        dtprev = dt
         print ('dt:', dt, 'done in:', time.time()-t0)
 
 
+    # orders features
     ordfeatures = {}
+    # no new orders for first timestamp
     dtprev = tradingtimes[0]
     ordfeatures[dtprev] = None
+
     for dt in tradingtimes[1:]:
         t0 = time.time()
         dftemp = utils.subsetbytime(dfday, dtprev, dt)
-        touchtemp = bkfeatures[dtprev]['bestbid'], bkfeatures[dtprev]['bestask']
-        ordfeatures[dt] = ordfn.features(dftemp, touchtemp)
+        norders = dftemp.count()
+        
+        ordfttemp = None
+        if norders > 0:
+            # only when new orders arrived
+            touchtemp = bkfeatures[dtprev]['bestbid'], bkfeatures[dtprev]['bestask']
+            ordfttemp = ordfn.features(dftemp, touchtemp)
+            
+        ordfeatures[dt] = ordfttemp
         dtprev = dt
         print ('dtprev:%s dt:%s, done in:%s' % (dtprev, dt, time.time()-t0))
