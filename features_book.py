@@ -12,20 +12,22 @@ def dailyorders(symbol, date_string, venue):
             price,
             reason,
             time
-        FROM orderbook_mscs 
+        FROM orderbook_tsx 
         WHERE symbol = '%s' 
             AND date_string = '%s' 
         ORDER BY time ASC'''
-    sargs = (symbol, date_string, venue)
+    sargs = (symbol, date_string)
     return spark.sql(s%sargs) 
 
 
 def orderbook(ordersdf, timestamp):
     '''return table of orderbook'''
-    tstr = str(timestamp)
+    # the bloody time up there is in UTC!
+    tstr = str(timestamp.tz_convert('UTC'))
     bk = ordersdf.filter('''time < timestamp '%s' ''' % (tstr))
     bk = bk.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
+    bk = bk.filter('quantity > 0')
     return bk.orderBy('price')
 
 
