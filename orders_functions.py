@@ -9,7 +9,9 @@ def filstr(ordtype=None, side=None, touch=None):
     '''return filter condition string'''
     s = ''
 
-    if ordtype == 'New':
+    if ordtype is None:
+        pass
+    elif ordtype == 'New':
         s += 'book_change > 0 '
     elif ordtype == 'Cancelled':
         s += '''reason == 'Cancelled' '''
