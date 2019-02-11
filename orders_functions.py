@@ -69,10 +69,10 @@ def features(df, touchval):
     def namer(ordtype, side, ctype, touch):
         s = ''
         s += ctype
-        s += '_of_' + ordtype
-        s += '_' + side + '_Orders'
+        s += '-of-' + ordtype
+        s += '-' + side + '-Orders'
         if touch is not None:
-            s += '_at_touch'
+            s += '-at-touch'
         return s
 
     out = {}
