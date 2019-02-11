@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from pyspark.sql.functions import abs
 
 
-def filstr(ordtype='New', side='All', touch=None):
+def filstr(ordtype=None, side=None, touch=None):
     '''return filter condition string'''
     s = ''
 
@@ -24,8 +24,6 @@ def filstr(ordtype='New', side='All', touch=None):
 
     if side in ['Buy', 'Sell']:
         s += '''AND side == '%s' ''' % (side)
-    elif side == 'All':
-        pass
     else:
         raise ValueError('invalid side argument: %s' % side)
     
@@ -34,7 +32,7 @@ def filstr(ordtype='New', side='All', touch=None):
 
 def aggtype(df, filstr=None):
     '''return count/sum of df.filter(filstr)'''
-    if filstr is not None:
+    if filstr is not None and len(filstr) > 0:
         df = df.filter(filstr)
     
     nrow = df.count()
@@ -51,13 +49,20 @@ def features(df, touchval):
         touchval: tuple of (bestbid, bestask)
     '''
     args = [{'ordtype': ordtype, 'side': side, 'touch': touch}
-        for ordtype in ['New', 'Cancelled', 'Executed']
-        for side in ['Buy', 'Sell', 'All']
+        for ordtype in [None, 'New', 'Cancelled', 'Executed']
+        for side in [None, 'Buy', 'Sell']
         for touch in [None, touchval]]
 
     def namer(ordtype, side, touch):
-        s = ordtype
-        s += '-' + side + '-Orders'
+        if ordtype is None:
+            s = 'All'
+        else:
+            s = ordtype
+
+        if side is not None:
+            s += '-' + side + '-'
+        s += 'Orders'
+
         if touch is not None:
             s += '-at-touch'
         return s
