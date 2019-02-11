@@ -27,8 +27,18 @@ def orderbook(ordersdf, timestamp):
     return bk.orderby('price')
 
 
-tradingtimes = 
+if __name__ == '__main__':
 
-features = {}
+    symbol = 'TD'
+    venue = 'TSX'
 
-features['orderbook'] = 
+    date_string = '2019-02-11'
+    freq = '1min'
+    tradingtimes = pd.date_range(
+        start = pd.to_datetime(date_string + ' 09:30'),
+        end = pd.to_datetime(date_string + ' 16:30'),
+        freq = freq)
+
+    dfday = dailyorders(symbol, date_string, venue)
+    features = {}
+    features['orderbook'] = [Book(dfday, dt).features() for dt in tradingtimes]
