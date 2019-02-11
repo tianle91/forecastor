@@ -101,4 +101,5 @@ if __name__ == '__main__':
             
         ordfeatures[dt] = ordft
         dtprev = dt
-        print ('dt: %s done in: %s \n\tfeatures: %s' % (dt, time.time()-t0, ordft))
+        print ('dt: %s norders: %s done in: %s \n\tfeatures: %s' % (dt, norders, time.time()-t0, ordft))
+        #print ('dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0))
