@@ -69,10 +69,12 @@ def features(df, touchval,
         df: spark dataframe object
         touchval: tuple of (bestbid, bestask)
     '''
-    filargs = [{'ordtype': ordtype, 'side': side, 'touch': touch}
+    filargs = [
+        {'ordtype': ordtype, 'side': side, 'touch': touch}
         for ordtype in [None] + ordtypeoptions
         for side in [None] + sideoptions
-        for touch in [None, touchval]]
+        for touch in [None, touchval]
+    ]
 
     out = {}
     for arg in filargs:
