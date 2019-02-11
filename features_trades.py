@@ -79,6 +79,7 @@ if __name__ == '__main__':
         end = pd.to_datetime(date_string + ' 16:00'),
         tz = 'US/Eastern',
         freq = freq)
+    print ('len(tradingtimes):', len(tradingtimes))
 
 
     trxfeatures = {}
