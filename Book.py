@@ -31,7 +31,7 @@ class Book(object):
         if verbose > 0:
             print ('len(df):', len(df))
         self.df = df.astype({'price': float, 'quantity': float})
-        self.touch = touch(df)
+        self.touch = touch(self.df)
 
 
     def isbat(self):
