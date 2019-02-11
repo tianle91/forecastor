@@ -32,7 +32,7 @@ def filstr(ordtype='New', side='All', touch=None):
     return s
 
 
-def aggtype(df, filstr=None, type='Number'):
+def aggtype(df, filstr=None, ctype='Number'):
     '''return count/sum of df.filter(filstr)'''
     if filstr is not None:
         df = df.filter(filstr)
@@ -80,7 +80,7 @@ def features(df, touchval):
         params = {
             'df': df,
             'filstr': filstr(arg['ordtype'], arg['side'], arg['touch']),
-            'type': arg['ctype']
+            'ctype': arg['ctype']
         }
         out[namer(**arg)] = aggtype(**params)
 
