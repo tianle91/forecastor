@@ -58,15 +58,18 @@ def namer(ordtype, side, touch):
     return s
 
 
-def features(df, touchval):
+def features(df, touchval, 
+    ordtypeoptions = [None, 'New', 'Cancelled', 'Executed'], 
+    sideoptions = [None, 'Buy', 'Sell']
+    ):
     '''return dict of new order features
     Args:
         df: spark dataframe object
         touchval: tuple of (bestbid, bestask)
     '''
     filargs = [{'ordtype': ordtype, 'side': side, 'touch': touch}
-        for ordtype in [None, 'New', 'Cancelled', 'Executed']
-        for side in [None, 'Buy', 'Sell']
+        for ordtype in ordtypeoptions
+        for side in sideoptions
         for touch in [None, touchval]]
 
     out = {}
