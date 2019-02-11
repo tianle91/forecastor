@@ -32,26 +32,16 @@ def filstr(ordtype='New', side='All', touch=None):
     return s
 
 
-def aggtype(df, filstr=None, ctype='Number'):
+def aggtype(df, filstr=None):
     '''return count/sum of df.filter(filstr)'''
     if filstr is not None:
         df = df.filter(filstr)
     
     nrow = df.count()
-    if ctype == 'Number':
-        return nrow
-    
-    # if ctype is not 'Number', need to compute sum(abs(book_change))
     df = df.withColumn('absch', abs(df.book_change))
     sumq = df.agg({'absch': 'sum'}).collect()[0]['sum(absch)']
 
-    if ctype == 'Volume':
-        return sumq
-    elif ctype == 'AvgVolume':
-        if nrow == 0:
-            return 0
-        else:
-            return sumq/nrow
+    return {'Number': nrow, 'Volume': sumq, 'AvgVolume': sumq/nrow}
 
 
 def features(df, touchval):
@@ -60,16 +50,13 @@ def features(df, touchval):
         df: spark dataframe object
         touchval: tuple of (bestbid, bestask)
     '''
-    args = [{'ordtype': ordtype, 'side': side, 'ctype': ctype, 'touch': touch}
+    args = [{'ordtype': ordtype, 'side': side, 'touch': touch}
         for ordtype in ['New', 'Cancelled', 'Executed']
         for side in ['Buy', 'Sell', 'All']
-        for ctype in ['Number', 'Volume', 'AvgVolume']
         for touch in [None, touchval]]
 
     def namer(ordtype, side, ctype, touch):
-        s = ''
-        s += ctype
-        s += '-of-' + ordtype
+        s = ordtype
         s += '-' + side + '-Orders'
         if touch is not None:
             s += '-at-touch'
@@ -79,8 +66,7 @@ def features(df, touchval):
     for arg in args:
         params = {
             'df': df,
-            'filstr': filstr(arg['ordtype'], arg['side'], arg['touch']),
-            'ctype': arg['ctype']
+            'filstr': filstr(arg['ordtype'], arg['side'], arg['touch'])
         }
         out[namer(**arg)] = aggtype(**params)
 
