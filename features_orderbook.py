@@ -45,4 +45,4 @@ if __name__ == '__main__':
 
     dfday = dailyorders(symbol, date_string, venue)
     features = {}
-    features['orderbook'] = [Book(orderbook(dfday, dt)).features() for dt in tradingtimes]
+    features['orderbook'] = [Book(orderbook(dfday, dt).toPandas()).features() for dt in tradingtimes]
