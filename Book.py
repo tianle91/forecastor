@@ -6,11 +6,10 @@ import matplotlib.pyplot as plt
 
 def touch(df):
     '''return tuple of (bestbid, bestask)'''
-    touch = (0, 99999)
+    bestbid, bestask = (0, 99999)
     if len(df) > 0:
         bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
         bestask = min(df.loc[df['side'] == 'Sell', 'price'])
-        touch = bestbid, bestask
     return {'bestbid': bestbid, 'bestask': bestask}
 
 
