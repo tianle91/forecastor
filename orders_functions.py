@@ -37,9 +37,9 @@ def aggtype(df, filstr=None, ctype='Number'):
     if filstr is not None:
         df = df.filter(filstr)
     
-    count = df.count()
+    nrow = df.count()
     if ctype == 'Number':
-        return numorders
+        return nrow
     
     # if ctype is not 'Number', need to compute sum(abs(book_change))
     df = df.withColumn('absch', abs(df.book_change))
@@ -48,10 +48,10 @@ def aggtype(df, filstr=None, ctype='Number'):
     if ctype == 'Volume':
         return sumq
     elif ctype == 'AvgVolume':
-        if numorders == 0:
+        if nrow == 0:
             return 0
         else:
-            return sumq/numorders
+            return sumq/nrow
 
 
 def features(df, touchval):
