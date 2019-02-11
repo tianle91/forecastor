@@ -76,7 +76,7 @@ if __name__ == '__main__':
         
         bkfeatures[dt] = bkft
         dtprev = dt
-        print ('dt:', dt, 'done in:', time.time()-t0)
+        print ('dt: %s done in: %s \n\tfeatures: %s' % (dt, time.time()-t0, bkft))
 
 
     # orders features
@@ -90,12 +90,12 @@ if __name__ == '__main__':
         dftemp = utils.subsetbytime(dfday, dtprev, dt)
         norders = dftemp.count()
         
-        ordfttemp = None
+        ordft = None
         if norders > 0:
             # only when new orders arrived
             touchtemp = bkfeatures[dtprev]['bestbid'], bkfeatures[dtprev]['bestask']
-            ordfttemp = ordfn.features(dftemp, touchtemp)
+            ordft = ordfn.features(dftemp, touchtemp)
             
-        ordfeatures[dt] = ordfttemp
+        ordfeatures[dt] = ordft
         dtprev = dt
-        print ('dtprev:%s dt:%s, done in:%s' % (dtprev, dt, time.time()-t0))
+        print ('dt: %s done in: %s \n\tfeatures: %s' % (dt, time.time()-t0, ordft))
