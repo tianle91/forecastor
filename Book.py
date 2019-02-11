@@ -59,7 +59,7 @@ class Book(object):
         sumqbat = np.sum(self.df.loc[self.isbat(), 'quantity'])
         sumqsat = np.sum(self.df.loc[self.issat(), 'quantity'])
         prxwgt = sumqsat*bestbid + sumqbat*bestask
-        prxwgt = prxweightedtouch/(sumqsat+sumqbat)
+        prxwgt = prxwgt/(sumqsat+sumqbat)
 
         out = {'bestbid': bestbid, 
                'bestask': bestask,
