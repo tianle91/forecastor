@@ -42,37 +42,34 @@ def aggtype(df, filstr=None):
     return {'Number': nrow, 'Volume': sumq}
 
 
+def namer(ordtype, side, touch):
+    '''return covariate name'''
+    if ordtype is None:
+        s = 'All'
+    else:
+        s = ordtype
+
+    if side is not None:
+        s += '-' + side + '-'
+    s += 'Orders'
+
+    if touch is not None:
+        s += '-at-touch'
+    return s
+
+
 def features(df, touchval):
     '''return dict of new order features
     Args:
         df: spark dataframe object
         touchval: tuple of (bestbid, bestask)
     '''
-    args = [{'ordtype': ordtype, 'side': side, 'touch': touch}
+    filargs = [{'ordtype': ordtype, 'side': side, 'touch': touch}
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for touch in [None, touchval]]
 
-    def namer(ordtype, side, touch):
-        if ordtype is None:
-            s = 'All'
-        else:
-            s = ordtype
-
-        if side is not None:
-            s += '-' + side + '-'
-        s += 'Orders'
-
-        if touch is not None:
-            s += '-at-touch'
-        return s
-
     out = {}
-    for arg in args:
-        params = {
-            'df': df,
-            'filstr': filstr(arg['ordtype'], arg['side'], arg['touch'])
-        }
-        out[namer(**arg)] = aggtype(**params)
-
+    for arg in filargs:
+        out[namer(**arg)] = aggtype(df, filstr(**arg))
     return out
