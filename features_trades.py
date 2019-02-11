@@ -19,7 +19,6 @@ def dailytrades(symbol, date_string):
         WHERE symbol = '%s' 
             AND date_string = '%s' 
             AND price > 0
-            AND price < 99999
         ORDER BY time ASC'''
     
     sargs = (symbol, date_string)
@@ -75,8 +74,8 @@ if __name__ == '__main__':
     #freq = '5min'
     freq = '1min'
     tradingtimes = pd.date_range(
-        start = pd.to_datetime(date_string + ' 09:30'),
-        end = pd.to_datetime(date_string + ' 16:00'),
+        start = pd.to_datetime(date_string + ' 09:30:01'),
+        end = pd.to_datetime(date_string + ' 16:00:01'),
         tz = 'US/Eastern',
         freq = freq)
     print ('len(tradingtimes):', len(tradingtimes))

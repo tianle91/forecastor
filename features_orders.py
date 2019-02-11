@@ -17,6 +17,7 @@ def dailyorders(symbol, date_string, venue):
         FROM orderbook_tsx 
         WHERE symbol = '%s' 
             AND date_string = '%s' 
+            AND price > 0
         ORDER BY time ASC'''
     sargs = (symbol, date_string)
     return spark.sql(s%sargs) 
@@ -51,12 +52,12 @@ if __name__ == '__main__':
     #freq = '5min'
     freq = '1min'
     tradingtimes = pd.date_range(
-        start = pd.to_datetime(date_string + ' 09:30'),
-        end = pd.to_datetime(date_string + ' 16:00'),
+        start = pd.to_datetime(date_string + ' 09:30:01'),
+        end = pd.to_datetime(date_string + ' 16:00:01'),
         tz = 'US/Eastern',
         freq = freq)
     print ('len(tradingtimes):', len(tradingtimes))
-    
+
 
     # orderbook features
     bkfeatures = {}
@@ -78,6 +79,7 @@ if __name__ == '__main__':
         bkfeatures[dt] = bkft
         dtprev = dt
         print ('dt: %s done in: %s \n\tfeatures: %s' % (dt, time.time()-t0, bkft))
+        #print ('dt: %s done in: %s' % (dt, time.time()-t0))
 
 
     # orders features
