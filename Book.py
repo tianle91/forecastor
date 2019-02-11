@@ -8,8 +8,8 @@ def touch(df):
     '''return tuple of (bestbid, bestask)'''
 
     if len(df) > 0:
-        bestbid = max(self.df.loc[self.df['side'] == 'Buy', 'price'])
-        bestask = min(self.df.loc[self.df['side'] == 'Sell', 'price'])
+        bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
+        bestask = min(df.loc[df['side'] == 'Sell', 'price'])
         touch = bestbid, bestask
     else:
         touch = (0, 99999)
