@@ -42,24 +42,33 @@ class Book(object):
         return np.logical_and(out, self.df['price'] <= bestask)
 
 
-    def features(self):
-        '''return dict of orderbook features'''
+    def prices(self):
+        '''return predictions of price based on orderbook'''
+        out = {}
+
+        # midprice
         bestbid = self.touch['bestbid']
         bestask = self.touch['bestask']
-        spread = bestask - bestbid
-        prxmid = .5*(bestask + bestbid)
+        out['mid'] = prxmid = .5*(bestask + bestbid)
 
-        # some weighted price
+        # weighted price based on volume at touch
         sumqbat = np.sum(self.df.loc[self.isbat(), 'quantity'])
         sumqsat = np.sum(self.df.loc[self.issat(), 'quantity'])
         prxwgt = sumqsat*bestbid + sumqbat*bestask
         prxwgt = prxwgt/(sumqsat+sumqbat)
 
+        return out
+
+    def features(self):
+        '''return dict of orderbook features'''
+        bestbid = self.touch['bestbid']
+        bestask = self.touch['bestask']
+        spread = bestask - bestbid
+
         out = {'bestbid': bestbid, 
                'bestask': bestask,
                'spread': spread,
-               'prxmid': prxmid,
-               'prxwgt': prxwgt}
+               'prices': self.prices()}
 
         return out
 
