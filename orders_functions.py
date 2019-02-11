@@ -61,8 +61,8 @@ def namer(ordtype, side, touch):
 
 
 def features(df, touchval, 
-    ordtypeoptions = [None, 'New', 'Cancelled', 'Executed'], 
-    sideoptions = [None, 'Buy', 'Sell']
+    ordtypeoptions = ['New', 'Cancelled', 'Executed'], 
+    sideoptions = ['Buy', 'Sell']
     ):
     '''return dict of new order features
     Args:
@@ -70,8 +70,8 @@ def features(df, touchval,
         touchval: tuple of (bestbid, bestask)
     '''
     filargs = [{'ordtype': ordtype, 'side': side, 'touch': touch}
-        for ordtype in ordtypeoptions
-        for side in sideoptions
+        for ordtype in [None] + ordtypeoptions
+        for side in [None] + sideoptions
         for touch in [None, touchval]]
 
     out = {}
