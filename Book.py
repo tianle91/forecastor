@@ -14,7 +14,7 @@ def touch(df):
         touch = (0, 99999)
 
     if not (bestbid < bestask):
-        raise ValueError('not (bestbid < bestask)!')
+        raise ValueError('not (bestbid:%s < bestask:%s)!' % (bestbid, bestask))
     else:
         return {'bestbid': bestbid, 'bestask': bestask}
 
