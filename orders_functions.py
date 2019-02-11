@@ -22,14 +22,14 @@ def filstr(ordtype=None, side=None, touch=None):
     
     if touch is not None:
         bestbid, bestask = touch
-        if len(s) == 0:
+        if not len(s) == 0:
             s += 'AND '
         s += '''price BETWEEN %s AND %s ''' % (bestbid, bestask)
 
     if side is None:
         pass
     elif side in ['Buy', 'Sell']:
-        if len(s) == 0:
+        if not len(s) == 0:
             s += 'AND '
         s += '''side == '%s' ''' % (side)
     else:
