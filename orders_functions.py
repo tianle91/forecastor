@@ -43,7 +43,7 @@ def aggtype(df, filstr=None, ctype='Number'):
     
     # if ctype is not 'Number', need to compute sum(abs(book_change))
     df = df.withColumn('absch', abs(df.book_change))
-    sumq = df.agg({'absq': 'sum'}).collect()[0]['sum(absq)']
+    sumq = df.agg({'absch': 'sum'}).collect()[0]['sum(absch)']
 
     if ctype == 'Volume':
         return sumq
