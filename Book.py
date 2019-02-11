@@ -56,6 +56,7 @@ class Book(object):
         sumqsat = np.sum(self.df.loc[self.issat(), 'quantity'])
         prxwgt = sumqsat*bestbid + sumqbat*bestask
         prxwgt = prxwgt/(sumqsat+sumqbat)
+        out['vol-touch'] = prxwgt
 
         return out
 
