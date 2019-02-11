@@ -4,6 +4,12 @@ import orders_functions as ordfn
 from Book import Book
 
 
+def utctimestamp(dt):
+    s = dt.tz_convert('UTC')
+    s = s.strftime('%Y-%m-%d %H:%M:%S')
+    return s
+    
+
 def dailyorders(symbol, date_string, venue):
     '''return table of orders'''
     s = '''SELECT
@@ -20,25 +26,32 @@ def dailyorders(symbol, date_string, venue):
     return spark.sql(s%sargs) 
 
 
-def orderbook(ordersdf, timestamp):
+def orderbook(ordersdf, timestamp, verbose=0):
     '''return table of orderbook'''
-    # the bloody time up there is in UTC!
-    tstr = str(timestamp.tz_convert('UTC'))
+    tstr = utctimestamp(timestamp)
     bk = ordersdf.filter('''time < timestamp '%s' ''' % (tstr))
     bk = bk.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
     bk = bk.filter('quantity > 0')
-    return bk.orderBy('price')
+    bk = bk.orderBy('price')
+
+    if verbose > 0:
+        print ('len:', bk.count())
+    return bk
 
 
-def orderinterval(ordersdf, timestamp0, timestamp1):
+def orderinterval(ordersdf, timestamp0, timestamp1, verbose=0):
     '''return orders between timestamp0 and timestamp1'''
     if timestamp0 < timestamp1:
-        t0, t1 = str(timestamp0), str(timestamp1)
+        t0, t1 = utctimestamp(timestamp0), utctimestamp(timestamp1)
     else:
         raise ValueError('not (timestamp0 < timestamp1)!')
     filstr = '''time BETWEEN '%s' AND '%s' '''
-    return ordersdf.filter(filstr % (t0, t1))
+    df = ordersdf.filter(filstr % (t0, t1))
+
+    if verbose > 0:
+        print ('len:', df.count())
+    return df
 
 
 if __name__ == '__main__':
