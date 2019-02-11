@@ -6,17 +6,12 @@ import matplotlib.pyplot as plt
 
 def touch(df):
     '''return tuple of (bestbid, bestask)'''
+    touch = (0, 99999)
     if len(df) > 0:
         bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
         bestask = min(df.loc[df['side'] == 'Sell', 'price'])
         touch = bestbid, bestask
-    else:
-        touch = (0, 99999)
-
-    if not (bestbid < bestask):
-        raise ValueError('not (bestbid:%s < bestask:%s)!' % (bestbid, bestask))
-    else:
-        return {'bestbid': bestbid, 'bestask': bestask}
+    return {'bestbid': bestbid, 'bestask': bestask}
 
 
 class Book(object):
@@ -52,10 +47,10 @@ class Book(object):
         '''return dict of orderbook features'''
         bestbid = self.touch['bestbid']
         bestask = self.touch['bestask']
-
         spread = bestask - bestbid
         prxmid = .5*(bestask + bestbid)
 
+        # some weighted price
         sumqbat = np.sum(self.df.loc[self.isbat(), 'quantity'])
         sumqsat = np.sum(self.df.loc[self.issat(), 'quantity'])
         prxwgt = sumqsat*bestbid + sumqbat*bestask
@@ -75,10 +70,14 @@ class Book(object):
         bestbid = self.touch['bestbid']
         bestask = self.touch['bestask']
 
+        if not (bestbid < bestask):
+            print ('not (bestbid:%s < bestask:%s)' % (bestbid, bestask))
+
         bk = self.df.copy()
         isbuy = bk['side'] == 'Buy'
         issell = bk['side'] == 'Sell'
 
+        # only plot somewhere around bestbid, bestask
         plotlow, plothigh = (viewpct*bestbid, (1.+viewpct)*bestask)
         isplot = np.logical_and(bk['price'] > plotlow, bk['price'] < plothigh)
         bk = bk.loc[isplot, :]
