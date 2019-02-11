@@ -1,114 +1,80 @@
-#import pyspark as spark
+# NO SPARK HERE.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def tofloat(df, colnames):
-    for colname in colnames:
-        df[colname] = df[colname].astype(float)
-    return df
+def touch(df):
+    '''return tuple of (bestbid, bestask)'''
 
+    if len(df) > 0:
+        bestbid = max(self.df.loc[self.df['side'] == 'Buy', 'price'])
+        bestask = min(self.df.loc[self.df['side'] == 'Sell', 'price'])
+        touch = bestbid, bestask
+    else:
+        touch = (0, 99999)
 
-def orderbook(symbol, timestamp, venue='TSX'):
-    '''return pandas table of order book'''
-    s = '''SELECT
-            SUM(book_change) AS quantity, 
-            side, 
-            price
-        FROM orderbook_tsx 
-        WHERE symbol='%s' 
-            AND date_string='%s' 
-            AND time < timestamp '%s'
-            AND venue = '%s'
-            AND price > 0
-            AND price < 99999
-        GROUP BY side, price 
-        ORDER BY price ASC'''
-    
-    sargs = (
-        symbol,
-        timestamp.split()[0],
-        timestamp,
-        venue)
-        
-    df = spark.sql(s % sargs)
-    
-    # save as temp table, return where qty>0
-    df.createOrReplaceTempView('orderbook')
-    df = spark.sql('SELECT * FROM orderbook WHERE quantity > 0')
-    return tofloat(df.toPandas(), ['quantity', 'price'])
+    if not (bestbid < bestask):
+        raise ValueError('not (bestbid < bestask)!')
+    else:
+        return {'bestbid': bestbid, 'bestask': bestask}
 
 
 class Book(object):
 
     def __init__(self, df):
-        '''df has columns (quantity, side, price)
-        takes some time to run, bu should only need to be done once.
-        '''
-        self.df = tofloat(df, ['quantity', 'price'])
 
-        # make touch
-        self.touch = (0, 99999)
-        if len(df) > 0:
-            bestbid = max(df.loc[df['side'] == 'Buy', 'price'])
-            bestask = min(df.loc[df['side'] == 'Sell', 'price'])
-            if bestbid < bestask:
-                self.touch = bestbid, bestask
-            else:
-                raise ValueError('bestbid >= bestask. df has unmatched orders!')
+        if type(df) is not pd.DataFrame:
+            return TypeError('df is not pd.DataFrame!')
+        if not {'side', 'price', 'quantity'}.issubset(df.columns):
+            return ValueError('df does not have side, price, quantity columns!')
+
+        self.df = df
+        self.touch = touch(df)
 
 
-    def features(self, q=None):
-        '''return orderbook features'''
-        bestbid, bestask = self.touch
+    def isbat(self):
+        '''return bool of buy-at-touch'''
+        bestbid = self.touch['bestbid']
+        out = self.df['side'] == 'Buy'
+        return np.logical_and(out, self.df['price'] >= bestbid)
+
+
+    def issat(self):
+        '''return bool of sell-at-touch'''
+        bestask = self.touch['bestask']
+        out = self.df['side'] == 'Sell'
+        return np.logical_and(out, self.df['price'] <= bestask)
+
+
+    def features(self):
+        '''return dict of orderbook features'''
+        bestbid = self.touch['bestbid']
+        bestask = self.touch['bestask']
+
         spread = bestask - bestbid
         prxmid = .5*(bestask + bestbid)
 
-        isbuyattouch = np.logical_and(self.df['side'] == 'Buy', self.df['price'] >= bestbid)
-        qbuytouch = np.sum(self.df.loc[isbuyattouch, 'quantity'])
-        issellattouch = np.logical_and(self.df['side'] == 'Sell', self.df['price'] <= bestask)
-        qselltouch = np.sum(self.df.loc[issellattouch, 'quantity'])
-        prxweightedtouch = qselltouch*bestbid + qbuytouch*bestask
-        prxweightedtouch = prxweightedtouch/(qselltouch+qbuytouch)
+        sumqbat = np.sum(self.df.loc[self.isbat(), 'quantity'])
+        sumqsat = np.sum(self.df.loc[self.issat(), 'quantity'])
+        prxwgt = sumqsat*bestbid + sumqbat*bestask
+        prxwgt = prxweightedtouch/(sumqsat+sumqbat)
 
-        out = {'spread': spread, 
-               'bestbid': bestbid, 
+        out = {'bestbid': bestbid, 
                'bestask': bestask,
+               'spread': spread,
                'prxmid': prxmid,
-               'prxweightedtouch': prxweightedtouch}
+               'prxwgt': prxwgt}
 
         return out
 
 
-    def updatebook(self, bkchanges, verbose=0):
-        '''return new Book updated with bkchanges'''
-
-        if len(bkchanges) > 0:
-            oldbk = self.df.copy()
-            # merge on ['price', 'side']
-            bkdfnew = oldbk.merge(bkchanges, on=['price', 'side'], how='outer').fillna(0)
-            bkdfnew = bkdfnew.rename(columns={'quantity': 'oldq'})
-            # add changes to quantity
-            bkdfnew['quantity'] = bkdfnew['oldq'] + bkdfnew['sum(book_change)']
-            # filter by nonzero 
-            bkdfnew = bkdfnew.loc[bkdfnew['quantity'] > 0, :]
-            bkdfnew = bkdfnew.sort_values('price')
-            return Book(bkdfnew[['side', 'price', 'quantity']])
-        else:
-            if verbose > 0:
-                print ('no change!')
-            return self
-
-
-    def depthview(self, viewpct=.5, plot=True):
+    def depthview(self, viewpct=.8, plot=True):
         '''return dict to construct depth view'''
+        bestbid = self.touch['bestbid']
+        bestask = self.touch['bestask']
 
-        features = self.features()
-        bestbid = features['bestbid']
-        bestask = features['bestask']
-
-        bk = self.df
+        bk = self.df.copy()
         isbuy = bk['side'] == 'Buy'
         issell = bk['side'] == 'Sell'
 
@@ -129,5 +95,5 @@ class Book(object):
             plt.plot(out['askp'], out['askq'], color='red', alpha=.5)
             plt.title('Depth View')
             plt.show()
-        
-        return out
+        else:
+            return out
