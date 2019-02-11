@@ -31,6 +31,16 @@ def orderbook(ordersdf, timestamp):
     return bk.orderBy('price')
 
 
+def orderinterval(ordersdf, timestamp0, timestamp1):
+    '''return orders between timestamp0 and timestamp1'''
+    if timestamp0 < timestamp1:
+        t0, t1 = str(timestamp0), str(timestamp1)
+    else:
+        raise ValueError('not (timestamp0 < timestamp1)!')
+    filstr = '''time BETWEEN '%s' AND '%s' '''
+    return ordersdf.filter(filstr % (t0, t1))
+
+
 if __name__ == '__main__':
 
     symbol = 'TD'
@@ -48,4 +58,4 @@ if __name__ == '__main__':
 
     features = {}
     features['orderbook'] = [Book(orderbook(dfday, dt).toPandas()).features() for dt in tradingtimes]
-    
+
