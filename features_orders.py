@@ -59,7 +59,7 @@ def features(symbol, date_string, venue = 'TSX',
     dfday = dailyorders(symbol, date_string, venue, tlim = tend_string)
     dfday.cache()
     if verbose > 0:
-        print ('get dailyorders done in: %s norders: %s' %\
+        print ('get dailyorders done in: %.2f norders: %d' %\
             (time.time()-t0, dfday.count()))
 
     tradingtimes = pd.date_range(
@@ -69,7 +69,7 @@ def features(symbol, date_string, venue = 'TSX',
         freq = freq)
 
     if verbose > 0:
-        print ('len(tradingtimes):', len(tradingtimes))
+        print ('len(tradingtimes): %d' % (len(tradingtimes)))
 
 
     # orderbook features
@@ -96,13 +96,13 @@ def features(symbol, date_string, venue = 'TSX',
         dtprev = dt
 
         if verbose > 0:
-            sreport = 'dt: %s done in: %s' % (dt, time.time()-t0)
+            sreport = 'dt: %s done in: %.2f' % (dt, time.time()-t0)
             if verbose > 1:
-                sreport += '\nfeatures:\n' + str(bkft)
+                sreport += '\n\tfeatures:' + str(bkft)
             print (sreport)
 
     if verbose > 0:
-        print ('orderbook features done in:', time.time()-t0)
+        print ('orderbook features done in: %.2f' % (time.time()-t0))
 
 
     # new orders features
@@ -130,13 +130,13 @@ def features(symbol, date_string, venue = 'TSX',
         dt = dtnext
         
         if verbose > 0:
-            sreport = 'dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0)
+            sreport = 'dt: %s norders: %d done in: %.2f' % (dt, norders, time.time()-t0)
             if verbose > 1:
-                sreport += '\nfeatures:\n' + str(ordft)
+                sreport += '\n\tfeatures:\n\t' + str(ordft)
             print (sreport)
 
     if verbose > 0:
-        print ('new orders features done in:', time.time()-t0)
+        print ('new orders features done in: %.2f' % (time.time()-t0))
 
 
     # aggregate into dict with time as key
@@ -145,7 +145,7 @@ def features(symbol, date_string, venue = 'TSX',
         out[dt] = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
 
     if verbose > 1:
-        print ('all order/book features done in:', time.time()-t0a)
+        print ('all order/book features done in: %.2f' % (time.time()-t0a))
     return out
 
 
