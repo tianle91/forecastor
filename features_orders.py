@@ -57,7 +57,8 @@ def features(symbol, date_string, venue = 'TSX',
     dfday = dailyorders(symbol, date_string, venue)
     dfday.cache()
     if verbose > 0:
-        print ('get dailyorders done in:', time.time()-t0)
+        print ('get dailyorders done in: %s norders: %s' %\
+            (time.time()-t0, dfday.count()))
 
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' 09:30:01'),
@@ -93,9 +94,9 @@ def features(symbol, date_string, venue = 'TSX',
         dtprev = dt
 
         if verbose > 0:
-            s = 'dt: %s done in: %s' % (dt, time.time()-t0)
+            sreport = 'dt: %s done in: %s' % (dt, time.time()-t0)
             if verbose > 1:
-                s += '\nfeatures:\n' + str(bkft)
+                sreport += '\nfeatures:\n' + str(bkft)
             print (sreport)
 
     if verbose > 0:
@@ -134,7 +135,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         print ('new orders features done in:', time.time()-t0)
-        
+
 
     # aggregate into dict with time as key
     out = {}
