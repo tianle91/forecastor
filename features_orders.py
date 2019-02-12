@@ -71,7 +71,6 @@ def features(symbol, date_string, venue = 'TSX',
         print ('running orderbook features...')
     
     bkfeatures = {}
-    # keep track of previous orderbook features
     dtprev = tradingtimes[0]
     bkftprev = Book(orderbook(dfday, dtprev).toPandas()).features()
 
@@ -101,23 +100,23 @@ def features(symbol, date_string, venue = 'TSX',
         print ('running new orders features...')
 
     ordfeatures = {}
-    # no new orders for first timestamp
-    dtprev = tradingtimes[0]
-    ordfeatures[dtprev] = None
+    ordfeatures[tradingtimes[-1]] = None
+    dt = tradingtimes[0]
 
-    for dt in tradingtimes[1:]:
+    for dtnext in tradingtimes[1:]:
+        # we run on new orders between [dt, dtnext)
         t0 = time.time()
-        dftemp = utils.subsetbytime(dfday, dtprev, dt)
+        dftemp = utils.subsetbytime(dfday, dt, dtnext)
         norders = dftemp.count()
         
         ordft = None
         if norders > 0:
             # only when new orders arrived
-            touchtemp = bkfeatures[dtprev]['bestbid'], bkfeatures[dtprev]['bestask']
+            touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
             ordft = ordfn.features(dftemp, touchtemp)
             
         ordfeatures[dt] = ordft
-        dtprev = dt
+        dt = dtnext
         
         if verbose > 0:
             sreport = 'dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0)
@@ -125,13 +124,16 @@ def features(symbol, date_string, venue = 'TSX',
                 sreport += '\nfeatures:\n' + str(ordft)
             print (sreport)            
 
+    # aggregate into dict with time as key
     out = {}
-
-
+    for dt in tradingtimes:
+        featuresdt = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
+        out[dt] = featuresdt
+    return out
 
 
 if __name__ == '__main__':
 
     symbol = 'TD'
     date_string = '2019-02-04'
-    x = features(symbol, date_string)
+    x = features(symbol, date_string, verbose=2)
