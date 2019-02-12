@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 import numpy as np
 
@@ -52,9 +53,11 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
-
+    t0 = time.time()
     dfday = dailyorders(symbol, date_string, venue)
     dfday.cache()
+    if verbose > 0:
+        print ('get dailyorders done in:', time.time()-t0)
 
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' 09:30:01'),
@@ -70,6 +73,7 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('running orderbook features...')
     
+    t0 = time.time()
     bkfeatures = {}
     dtprev = tradingtimes[0]
     bkftprev = Book(orderbook(dfday, dtprev).toPandas()).features()
@@ -94,11 +98,15 @@ def features(symbol, date_string, venue = 'TSX',
                 s += '\nfeatures:\n' + str(bkft)
             print (sreport)
 
+    if verbose > 0:
+        print ('orderbook features done in:', time.time()-t0)
+
 
     # new orders features
     if verbose > 0:
         print ('running new orders features...')
 
+    t0 = time.time()
     ordfeatures = {}
     ordfeatures[tradingtimes[-1]] = None
     dt = tradingtimes[0]
@@ -122,7 +130,11 @@ def features(symbol, date_string, venue = 'TSX',
             sreport = 'dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0)
             if verbose > 1:
                 sreport += '\nfeatures:\n' + str(ordft)
-            print (sreport)            
+            print (sreport)
+
+    if verbose > 0:
+        print ('new orders features done in:', time.time()-t0)
+        
 
     # aggregate into dict with time as key
     out = {}
