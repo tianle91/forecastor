@@ -142,8 +142,7 @@ def features(symbol, date_string, venue = 'TSX',
     # aggregate into dict with time as key
     out = {}
     for dt in tradingtimes:
-        featuresdt = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
-        out[dt] = featuresdt
+        out[dt] = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
 
     if verbose > 1:
         print ('all order/book features done in:', time.time()-t0a)
