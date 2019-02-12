@@ -102,6 +102,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         print ('orderbook features done in: %.2f' % (time.time()-t1))
+        # 3secs each if new orders, around 5mins total
 
 
     # new orders features

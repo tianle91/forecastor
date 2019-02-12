@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 def filbool(df, ordtype=None, side=None, touch=None):
@@ -36,9 +35,7 @@ def aggtype(df, filbool):
     '''return count/sum of df.filter(filstr)'''
     if b is not None:
         df = df.loc[filbool,:]
-    nrow = len(df)
-    sumq = df['book_change'].abs().sum()
-    return {'Number': nrow, 'Volume': sumq}
+    return {'Number': len(df), 'Volume': df['book_change'].abs().sum()}
 
 
 def namer(ordtype, side, touch):
