@@ -54,6 +54,7 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
+    t0all = time.time()
     t0 = time.time()
     dfday = dailyorders(symbol, date_string, venue, tlim = tend_string)
     dfday.cache()
@@ -143,6 +144,9 @@ def features(symbol, date_string, venue = 'TSX',
     for dt in tradingtimes:
         featuresdt = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
         out[dt] = featuresdt
+
+    if verbose > 1:
+        print ('all order/book features done in:', time.time()-t0a)
     return out
 
 
