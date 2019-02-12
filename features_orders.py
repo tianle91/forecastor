@@ -87,8 +87,7 @@ def features(symbol, date_string, venue = 'TSX',
 
         if dt > dtprev:
             # only when dt has advanced past tradingtimes[0]
-            norders =  utils.subsetbytime(dfday, dtprev, dt).count()
-            if norders > 0:
+            if utils.subsetbytime(dfday, dtprev, dt).count() > 0:
                 # only when new orders arrived
                 bkft = Book(orderbook(dfday, dt).toPandas()).features()
         
@@ -118,10 +117,9 @@ def features(symbol, date_string, venue = 'TSX',
         # we run on new orders between [dt, dtnext)
         t0 = time.time()
         dftemp = utils.subsetbytime(dfday, dt, dtnext)
-        norders = dftemp.count()
         
         ordft = None
-        if norders > 0:
+        if dftemp.count() > 0:
             # only when new orders arrived
             touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
             ordft = ordfn.features(dftemp.toPandas(), touchtemp)
