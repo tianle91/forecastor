@@ -19,9 +19,9 @@ def dailyorders(symbol, date_string, venue, tlim='23:59'):
         WHERE symbol = '%s' 
             AND date_string = '%s' 
             AND price > 0
-            AND time < timestamp '%s'
+            AND time < timestamp '%s %s:00'
         ORDER BY time ASC'''
-    sargs = (symbol, date_string, date_string + ' ' + tlim)
+    sargs = (symbol, date_string, date_string, tlim)
     return spark.sql(s%sargs) 
 
 
