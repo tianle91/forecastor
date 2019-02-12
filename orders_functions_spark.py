@@ -1,40 +1,51 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from pyspark.sql.functions import abs
 
 
-def filbool(df, ordtype=None, side=None, touch=None):
-    '''return filter condition boolean'''
+def filstr(ordtype=None, side=None, touch=None):
+    '''return filter condition string'''
+    s = ''
+
     if ordtype is None:
         pass
     elif ordtype == 'New':
-        b = df['book_change'] > 0
+        s += 'book_change > 0 '
     elif ordtype == 'Cancelled':
-        b = df['reason'] == 'Cancelled'
+        s += '''reason == 'Cancelled' '''
     elif ordtype == 'Executed':
-        b = df['reason'].isin(['Filled', 'Partial Fill'])
+        s += '''reason == 'Filled' OR reason == 'Partial Fill' '''
     else:
         raise ValueError('invalid orddtype argument: %s' % ordtype)
     
     if touch is not None:
         bestbid, bestask = touch
-        b = np.logical_and(b, df['price'].between(bestbid, bestask))
+        if not len(s) == 0:
+            s += 'AND '
+        s += '''price BETWEEN %s AND %s ''' % (bestbid, bestask)
 
     if side is None:
         pass
     elif side in ['Buy', 'Sell']:
-        b = np.logical_and(b, df['side'] == side)
+        if not len(s) == 0:
+            s += 'AND '
+        s += '''side == '%s' ''' % (side)
     else:
         raise ValueError('invalid side argument: %s' % side)
     
-    return b
+    return s
 
 
-def aggtype(df, filbool):
+def aggtype(df, filstr=None):
     '''return count/sum of df.filter(filstr)'''
-    df = df.loc[filbool,:]
-    nrow = len(df)
-    sumq = df['book_change'].abs().sum()
+    if filstr is not None and len(filstr) > 0:
+        df = df.filter(filstr)
+    
+    nrow = df.count()
+    df = df.withColumn('absch', abs(df.book_change))
+    sumq = df.agg({'absch': 'sum'}).collect()[0]['sum(absch)']
+
     return {'Number': nrow, 'Volume': sumq}
 
 
@@ -63,9 +74,6 @@ def features(df, touchval,
         df: spark dataframe object
         touchval: tuple of (bestbid, bestask)
     '''
-    if type(df) is not pd.DataFrame:
-        raise TypeError('df is not pd.DataFrame!')
-
     filargs = [
         {'ordtype': ordtype, 'side': side, 'touch': touch}
         for ordtype in [None] + ordtypeoptions
@@ -75,5 +83,5 @@ def features(df, touchval,
 
     out = {}
     for arg in filargs:
-        out[namer(**arg)] = aggtype(df, filbool(df, **arg))
+        out[namer(**arg)] = aggtype(df, filstr(**arg))
     return out

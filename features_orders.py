@@ -69,14 +69,14 @@ def features(symbol, date_string, venue = 'TSX',
         freq = freq)
 
     if verbose > 0:
-        print ('len(tradingtimes): %d' % (len(tradingtimes)))
+        print ('freq:%s len(tradingtimes): %d' % (freq, len(tradingtimes)))
 
 
     # orderbook features
     if verbose > 0:
         print ('running orderbook features...')
     
-    t0 = time.time()
+    t1 = time.time()
     bkfeatures = {}
     dtprev = tradingtimes[0]
     bkftprev = Book(orderbook(dfday, dtprev).toPandas()).features()
@@ -102,14 +102,14 @@ def features(symbol, date_string, venue = 'TSX',
             print (sreport)
 
     if verbose > 0:
-        print ('orderbook features done in: %.2f' % (time.time()-t0))
+        print ('orderbook features done in: %.2f' % (time.time()-t1))
 
 
     # new orders features
     if verbose > 0:
         print ('running new orders features...')
 
-    t0 = time.time()
+    t1 = time.time()
     ordfeatures = {}
     ordfeatures[tradingtimes[-1]] = None
     dt = tradingtimes[0]
@@ -124,7 +124,7 @@ def features(symbol, date_string, venue = 'TSX',
         if norders > 0:
             # only when new orders arrived
             touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
-            ordft = ordfn.features(dftemp, touchtemp)
+            ordft = ordfn.features(dftemp.toPandas(), touchtemp)
             
         ordfeatures[dt] = ordft
         dt = dtnext
@@ -136,7 +136,7 @@ def features(symbol, date_string, venue = 'TSX',
             print (sreport)
 
     if verbose > 0:
-        print ('new orders features done in: %.2f' % (time.time()-t0))
+        print ('new orders features done in: %.2f' % (time.time()-t1))
 
 
     # aggregate into dict with time as key
