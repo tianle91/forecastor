@@ -7,7 +7,7 @@ import orders_functions as ordfn
 from Orderbook import Book
 
 
-def dailyorders(symbol, date_string, venue):
+def dailyorders(symbol, date_string, venue, tlim='23:59'):
     '''return table of orders'''
     s = '''SELECT
             book_change, 
@@ -19,8 +19,9 @@ def dailyorders(symbol, date_string, venue):
         WHERE symbol = '%s' 
             AND date_string = '%s' 
             AND price > 0
+            AND time < timestamp '%s'
         ORDER BY time ASC'''
-    sargs = (symbol, date_string)
+    sargs = (symbol, date_string, date_string + ' ' + tlim)
     return spark.sql(s%sargs) 
 
 
@@ -54,7 +55,7 @@ def features(symbol, date_string, venue = 'TSX',
         tend_string: str of 'HH:MM' for end time
     '''
     t0 = time.time()
-    dfday = dailyorders(symbol, date_string, venue)
+    dfday = dailyorders(symbol, date_string, venue, tlim = tend_string)
     dfday.cache()
     if verbose > 0:
         print ('get dailyorders done in: %s norders: %s' %\
