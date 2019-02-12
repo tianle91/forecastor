@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 def filbool(df, ordtype=None, side=None, touch=None):
     '''return filter condition boolean'''
+    b = None
+
     if ordtype is None:
         pass
     elif ordtype == 'New':
@@ -32,7 +34,8 @@ def filbool(df, ordtype=None, side=None, touch=None):
 
 def aggtype(df, filbool):
     '''return count/sum of df.filter(filstr)'''
-    df = df.loc[filbool,:]
+    if b is not None:
+        df = df.loc[filbool,:]
     nrow = len(df)
     sumq = df['book_change'].abs().sum()
     return {'Number': nrow, 'Volume': sumq}
