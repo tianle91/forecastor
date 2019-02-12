@@ -37,29 +37,39 @@ def orderbook(ordersdf, timestamp, verbose=0):
     return bk
 
 
-if __name__ == '__main__':
+def features(symbol, date_string, venue = 'TSX',
+    freq = '1min', tstart_string = '09:30', tend_string = '16:00',
+    verbose = 0):
+    '''return dict of features of orderbook and new orders
+    features at HH:MM are computed using orderbook [00:00, HH:MM) and 
+    orders that came in during [HH:MM, HH:(MM+1))
 
-    symbol = 'TD'
-    venue = 'TSX'
-    date_string = '2019-02-04'
+    Args:
+        symbol: str of ticker
+        date_string: str of YYYY-MM-DD
+        venue: str of exchange
+        freq: pandas freq (e.g. ['1H', '30min', '5min', '1min'])
+        tstart_string: str of 'HH:MM' for start time
+        tend_string: str of 'HH:MM' for end time
+    '''
 
     dfday = dailyorders(symbol, date_string, venue)
     dfday.cache()
 
-    
-    #freq = '1H'
-    freq = '30min'
-    #freq = '5min'
-    #freq = '1min'
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' 09:30:01'),
         end = pd.to_datetime(date_string + ' 16:00:01'),
         tz = 'US/Eastern',
         freq = freq)
-    print ('len(tradingtimes):', len(tradingtimes))
+
+    if verbose > 0:
+        print ('len(tradingtimes):', len(tradingtimes))
 
 
     # orderbook features
+    if verbose > 0:
+        print ('running orderbook features...')
+    
     bkfeatures = {}
     # keep track of previous orderbook features
     dtprev = tradingtimes[0]
@@ -78,12 +88,18 @@ if __name__ == '__main__':
         
         bkfeatures[dt] = bkft
         dtprev = dt
-        print ('dt: %s done in: %s \n\tfeatures: %s' % (dt, time.time()-t0, bkft))
-        #print ('dt: %s done in: %s' % (dt, time.time()-t0))
-    # 3sec*14 = 1min
+
+        if verbose > 0:
+            s = 'dt: %s done in: %s' % (dt, time.time()-t0)
+            if verbose > 1:
+                s += '\nfeatures:\n' + str(bkft)
+            print (sreport)
 
 
-    # orders features
+    # new orders features
+    if verbose > 0:
+        print ('running new orders features...')
+
     ordfeatures = {}
     # no new orders for first timestamp
     dtprev = tradingtimes[0]
@@ -102,6 +118,20 @@ if __name__ == '__main__':
             
         ordfeatures[dt] = ordft
         dtprev = dt
-        print ('dt: %s norders: %s done in: %s \n\tfeatures: %s' % (dt, norders, time.time()-t0, ordft))
-        #print ('dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0))
-    # 30sec*14 = 10min
+        
+        if verbose > 0:
+            sreport = 'dt: %s norders: %s done in: %s' % (dt, norders, time.time()-t0)
+            if verbose > 1:
+                sreport += '\nfeatures:\n' + str(ordft)
+            print (sreport)            
+
+    out = {}
+
+
+
+
+if __name__ == '__main__':
+
+    symbol = 'TD'
+    date_string = '2019-02-04'
+    x = features(symbol, date_string)
