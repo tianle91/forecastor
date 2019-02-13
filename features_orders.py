@@ -7,7 +7,7 @@ import orders_functions as ordfn
 from Orderbook import Book
 
 
-def dailyorders(symbol, date_string, venue, tlim='23:59'):
+def dailyorders(symbol, date_string, venue):
     '''return table of orders'''
     s = '''SELECT
             book_change, 
@@ -19,9 +19,8 @@ def dailyorders(symbol, date_string, venue, tlim='23:59'):
         WHERE symbol = '%s' 
             AND date_string = '%s' 
             AND price > 0
-            AND time < timestamp '%s %s:00'
         ORDER BY time ASC'''
-    sargs = (symbol, date_string, date_string, tlim)
+    sargs = (symbol, date_string, date_string)
     return spark.sql(s%sargs) 
 
 
@@ -54,25 +53,24 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
-    t0all = time.time()
-    t0 = time.time()
-    dfday = dailyorders(symbol, date_string, venue, tlim = tend_string)
-    nordersnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
+    if verbose > 0:
+        t0all = time.time()
+        t0 = time.time()
 
+    tradingtimes = utils.tradingtimes(freq, tstart_string, tend_string)
+
+    # get all transactions prior to tradingtimes[-1]
+    dfday = dailyorders(symbol, date_string, venue)
+    dfday = utils.subsetbytime(dfday, tradingtimes[-1])
     dfday.cache()
     if verbose > 0:
         print ('get dailyorders done in: %.2f norders: %d before: %s' %\
             (time.time()-t0, dfday.count(), tend_string))
 
-    tradingtimes = pd.date_range(
-        start = pd.to_datetime(date_string + ' %s' % (tstart_string)),
-        end = pd.to_datetime(date_string + ' %s' % (tend_string)),
-        tz = 'US/Eastern',
-        freq = freq)
-
-    if tstart_string == '09:30':
-        # displace by 1ms if at start of trading
-        tradingtimes[0] = pd.to_datetime(date_string + ' %s:00.001' % (tstart_string))
+    # count number of new orders
+    tstartdt = tradingtimes[0]
+    tenddt = tradingtimes[-1]
+    nordersnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
 
     if verbose > 0:
         print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
@@ -115,10 +113,6 @@ def features(symbol, date_string, venue = 'TSX',
 
     # new orders features
     # --------------------------------------------------------------------------
-    tstartdt = tradingtimes[0]
-    tenddt = tradingtimes[-1]
-    
-
     if verbose > 0:
         print ('running new orders features for all dt in tradingtimes...')
         print ('there are %d new orders from %s to %s' %\
@@ -174,4 +168,7 @@ if __name__ == '__main__':
     symbol = 'TD'
     date_string = '2019-02-04'
     x = features(symbol, date_string, 
-        tstart_string='10:00', tend_string='11:00', verbose=1)
+        freq='1H',
+        tstart_string='10:00', 
+        tend_string='11:00', 
+        verbose=1)

@@ -22,3 +22,19 @@ def subsetbytime(df, timestamp0, timestamp1=None, verbose=0):
     if verbose > 0:
         print ('len:', out.count())
     return out
+
+
+def tradingtimes(freq, tstart_string='09:30', tend_string='16:00'):
+    '''return array of datetimes by freq in US/Eastern tz'''
+
+    out = pd.date_range(
+        start = pd.to_datetime(date_string + ' %s' % (tstart_string)),
+        end = pd.to_datetime(date_string + ' %s' % (tend_string)),
+        tz = 'US/Eastern',
+        freq = freq)
+
+    if tstart_string == '09:30':
+        # displace by 1ms if at start of trading
+        out[0] = pd.to_datetime(date_string + ' %s:00.001' % (tstart_string))
+
+    return out
