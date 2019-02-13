@@ -63,10 +63,13 @@ def features(symbol, date_string, venue = 'TSX',
             (time.time()-t0, dfday.count()))
 
     tradingtimes = pd.date_range(
-        start = pd.to_datetime(date_string + ' %s:01' % (tstart_string)),
-        end = pd.to_datetime(date_string + ' %s:01' % (tend_string)),
+        start = pd.to_datetime(date_string + ' %s' % (tstart_string)),
+        end = pd.to_datetime(date_string + ' %s' % (tend_string)),
         tz = 'US/Eastern',
         freq = freq)
+
+    if tstart_string == '09:30':
+        tradingtimes[0] = pd.to_datetime(date_string + ' %s:00.001' % (tstart_string))
 
     if verbose > 0:
         print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
@@ -111,12 +114,12 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     tstartdt = tradingtimes[0]
     tenddt = tradingtimes[-1]
-    nordersnew = utils.subsetbytime(dfday, t0dt, tenddt).count()
+    nordersnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
 
     if verbose > 0:
         print ('running new orders features for all dt in tradingtimes...')
         print ('there are %d new orders from %s to %s' %\
-            (nordersnew, t0dt, tenddt))
+            (nordersnew, tstartdt, tenddt))
 
     t1 = time.time()
     ordfeatures = {}
@@ -166,4 +169,4 @@ if __name__ == '__main__':
     symbol = 'TD'
     date_string = '2019-02-04'
     x = features(symbol, date_string, 
-        tstart_string='10:00', tend_string='11:00', verbose=2)
+        tstart_string='10:00', tend_string='11:00', verbose=1)
