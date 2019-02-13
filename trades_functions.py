@@ -5,7 +5,7 @@ import pandas as pd
 def features_gpbyprice(df):
     '''return features of all trades aggregated by price'''
     ntrades = len(df)
-    dfgpbyprx = df.groupby('price')['quantity'].agg('sum')
+    dfgpbyprx = df.groupby('price').agg({'quantity': 'sum'})
     print (dfgpbyprx)
 
     prx = df['price']
@@ -25,10 +25,10 @@ def features_gpbyprice(df):
         qtypertrade = tradeq/ntrades
 
     out = {'mean': mean, 
-           'sd': sd, 
-           'Number-of-Trades': ntrades, 
-           'Quantity-Traded': tradeq, 
-           'AvgVol': qtypertrade}
+        'sd': sd, 
+        'Number-of-Trades': ntrades, 
+        'Quantity-Traded': tradeq, 
+        'AvgVol': qtypertrade}
 
     return out
 
@@ -53,4 +53,5 @@ def features(df):
 
     out = {'gpbyprice': features_gpbyprice(df),
         'gpbybroker': features_gpbybroker(df)}
+
     return out
