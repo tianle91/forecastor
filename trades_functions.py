@@ -41,7 +41,7 @@ def features_gpbyprice(df):
 def filltrfm(aggdf, transfermatrix):
     m = transfermatrix.copy()
     for index, row in aggdf.iterrows():
-        buybro, selbro = index
+        buybro, sellbro = index
         m.loc[sellbro, buybro] += float(row[0])
     return m
 
@@ -66,7 +66,7 @@ def features(df, transfermatrix):
     else:
         df = df.astype({'price': float, 'quantity': float})
 
-    out = {'gpbyprice': features_gpbyprice(df),
+    out = {
+        'gpbyprice': features_gpbyprice(df),
         'gpbybroker': features_gpbybroker(df, transfermatrix)}
-
     return out
