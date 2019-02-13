@@ -63,8 +63,8 @@ def features(symbol, date_string, venue = 'TSX',
             (time.time()-t0, dfday.count()))
 
     tradingtimes = pd.date_range(
-        start = pd.to_datetime(date_string + ' 09:30:01'),
-        end = pd.to_datetime(date_string + ' 16:00:01'),
+        start = pd.to_datetime(date_string + ' %s:01' % (tstart_string)),
+        end = pd.to_datetime(date_string + ' %s:01' % (tend_string)),
         tz = 'US/Eastern',
         freq = freq)
 
@@ -120,7 +120,8 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = utils.subsetbytime(dfday, dt, dtnext)
         
         ordft = None
-        if dftemp.count() > 0:
+        norders = dftemp.count()
+        if norders > 0:
             # only when new orders arrived
             touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
             ordft = ordfn.features(dftemp.toPandas(), touchtemp)
@@ -152,4 +153,4 @@ if __name__ == '__main__':
 
     symbol = 'TD'
     date_string = '2019-02-04'
-    x = features(symbol, date_string, verbose=2)
+    x = features(symbol, date_string, tstart_string='10:00', tend_string='11:00', verbose=2)
