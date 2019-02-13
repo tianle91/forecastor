@@ -42,7 +42,7 @@ def filltrfm(aggdf, transfermatrix):
     m = transfermatrix.copy()
     for buy_broker, dfsub in aggdf.groupby(level=0):
         for sell_broker, dfsub1 in dfsub.groupby(level=1):
-            m.loc[sell_broker, buy_broker] += float(dfsub1.loc[(sell_broker, buy_broker), :])
+            m.loc[sell_broker, buy_broker] += float(dfsub1.loc[(buy_broker, sell_broker), :])
     return m
 
 
