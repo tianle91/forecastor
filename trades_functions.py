@@ -38,20 +38,17 @@ def features_gpbyprice(df):
     return out
 
 
-def features_gpbybroker(df):
+def features_gpbybroker(df, transfermatrix):
     '''return features of all trades aggregated by broker'''
 
-    def worker(brokercolname):
-        out = df.groupby(brokercolname).agg({'quantity': 'sum', brokercolname: 'count'})
-        return out
-        
-    out = {}
-    for cname in ['buy_broker', 'sell_broker']:
-        out[cname] = worker(cname)
-    return out
+    tradecounts = df.groupby(['buy_broker', 'sell_broker']).count()
+    tfmcounts = transfermatrix.copy()
+    tradevolume = df.groupby(['buy_broker', 'sell_broker'])['quantity'].sum()
+    tfmvolume = transfermatrix.copy()
+    return {tradecounts, tradevolume}
 
 
-def features(df):
+def features(df, transfermatrix):
     '''return dict of features'''
     if type(df) is not pd.DataFrame:
         raise TypeError('df is not pd.DataFrame!')
@@ -61,6 +58,6 @@ def features(df):
         df = df.astype({'price': float, 'quantity': float})
 
     out = {'gpbyprice': features_gpbyprice(df),
-        'gpbybroker': features_gpbybroker(df)}
+        'gpbybroker': features_gpbybroker(df, transfermatrix)}
 
     return out

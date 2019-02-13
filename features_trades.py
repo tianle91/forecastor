@@ -47,3 +47,10 @@ if __name__ == '__main__':
 
 
     brokerdf = spark.sql('SELECT * FROM broker_metadata').toPandas()
+    brokeridlist = np.unique(brokerdf['brokerdf'])
+    brokeridlist = brokeridlist[np.logical_not(np.isnan(brokeridlist))]
+    brokertransfermatrix = pd.DataFrame([np.zeros(len(brokeridlist))]*len(brokeridlist), 
+        index=brokeridlist, columns=brokeridlist)
+    print (brokertransfermatrix)
+
+    trxfn.features(dfday.toPandas(), ttrfm=brokertransfermatrix)
