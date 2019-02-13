@@ -155,6 +155,7 @@ def features(symbol, date_string, venue = 'TSX',
 
 
     # aggregate into dict with time as key
+    # --------------------------------------------------------------------------
     out = {}
     for dt in tradingtimes:
         out[dt] = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
