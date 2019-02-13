@@ -3,14 +3,7 @@ import pandas as pd
 
 
 def features_gpbyprice(df):
-    '''return features of all trades grouped by price'''
-    if type(df) is not pd.DataFrame:
-        raise TypeError('df is not pd.DataFrame!')
-    elif not {'price', 'quantity'}.issubset(df.columns):
-        raise ValueError('''['price', 'quantity'] not in df.columns!''')
-    else:
-        df = df.astype({'price': float, 'quantity': float})
-
+    '''return features of all trades aggregated by price'''
     ntrades = len(df)
     dfgpbyprx = df.groupby('price')['quantity'].agg('sum')
     print (dfgpbyprx)
@@ -20,20 +13,20 @@ def features_gpbyprice(df):
     wgt = qty / np.sum(qty)
 
     mean = 0
-    stdev = 0
+    sd = 0
     tradeq = 0
     qtypertrade = 0
 
-    if tradecount > 0:
+    if ntrades > 0:
         mean =  np.average(prx, weights=wgt)
-        stdev = np.average(np.power(prx, 2), weights=wgt)
+        sd = np.average(np.power(prx, 2), weights=wgt)
         stdev = np.sqrt(stdev - np.power(mean, 2))
         tradeq = np.sum(qty)
-        qtypertrade = tradeq/tradecount
+        qtypertrade = tradeq/ntrades
 
     out = {'mean': mean, 
-           'sd': stdev, 
-           'Number-of-Trades': tradecount, 
+           'sd': sd, 
+           'Number-of-Trades': ntrades, 
            'Quantity-Traded': tradeq, 
            'AvgVol': qtypertrade}
 
@@ -41,14 +34,23 @@ def features_gpbyprice(df):
 
 
 def features_gpbybroker(df):
-    '''return features of all trades grouped by broker'''
-    if type(df) is not pd.DataFrame:
-        raise TypeError('df is not pd.DataFrame!')
-    elif not {'buy_broker', 'sell_broker'}.issubset(df.columns):
-        raise ValueError('''['buy_broker', 'sell_broker'] not in df.columns!''')
+    '''return features of all trades aggregated by broker'''
+
+    def worker(brokercolname):
+        print (df.groupby(brokercolname).agg('count'))
+        
     pass
 
 
 def features(df):
-    out = {'gpbyprice': features_gpbyprice(df)}
+    '''return dict of features'''
+    if type(df) is not pd.DataFrame:
+        raise TypeError('df is not pd.DataFrame!')
+    elif not {'price', 'quantity', 'buy_broker', 'sell_broker'}.issubset(df.columns):
+        raise ValueError('''['price', 'quantity', 'buy_broker', 'sell_broker'] not in df.columns!''')
+    else:
+        df = df.astype({'price': float, 'quantity': float})
+
+    out = {'gpbyprice': features_gpbyprice(df),
+        'gpbybroker': features_gpbybroker(df)}
     return out
