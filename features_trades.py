@@ -26,8 +26,9 @@ def dailytrades(symbol, date_string):
 
 def brokertrfmatrix():
     brokerdf = spark.sql('SELECT * FROM broker_metadata').toPandas()
-    brokeridlist = np.unique(brokerdf['broker_id'].astype(str))
+    brokeridlist = np.unique(brokerdf['broker_id'])
     brokeridlist = brokeridlist[np.logical_not(np.isnan(brokeridlist))]
+    brokeridlist = brokeridlist.astype(str)
     out = pd.DataFrame(
         [np.zeros(len(brokeridlist))]*len(brokeridlist), 
         index=brokeridlist, columns=brokeridlist)
