@@ -57,7 +57,7 @@ def features(symbol, date_string, venue = 'TSX',
         t0all = time.time()
         t0 = time.time()
 
-    tradingtimes = utils.tradingtimes(freq, tstart_string, tend_string)
+    tradingtimes = utils.tradingtimes(date_string, tstart_string, tend_string, freq)
 
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue)
