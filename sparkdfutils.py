@@ -9,6 +9,13 @@ def utctimestamp(dt):
 
 
 def subsetbytime(df, timestamp0, timestamp1=None, verbose=0):
+    '''return subset of df. 
+    if timestamp1 is None, return subset [0000, timestamp0), 
+    otherwise return subset [timestamp0, timestamp1).
+    df.time is UTC, so localized time is required.
+    '''
+    if timestamp0.tzinfo is None:
+        raise ValueError('no timezone set for timestamp0! df.time is UTC time.')
 
     if timestamp1 is None:
         s = '''time < '%s' ''' % (utctimestamp(timestamp0))
@@ -24,13 +31,13 @@ def subsetbytime(df, timestamp0, timestamp1=None, verbose=0):
     return out
 
 
-def tradingtimes(freq, tstart_string='09:30', tend_string='16:00'):
+def tradingtimes(freq='1min', tstart_string='09:30', tend_string='16:00', tz='US/Eastern'):
     '''return array of datetimes by freq in US/Eastern tz'''
 
     out = pd.date_range(
         start = pd.to_datetime(date_string + ' %s' % (tstart_string)),
         end = pd.to_datetime(date_string + ' %s' % (tend_string)),
-        tz = 'US/Eastern',
+        tz = tz,
         freq = freq)
 
     if tstart_string == '09:30':
