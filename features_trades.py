@@ -24,6 +24,16 @@ def dailytrades(symbol, date_string):
     return spark.sql(s % sargs)
 
 
+def brokertrfmatrix():
+    brokerdf = spark.sql('SELECT * FROM broker_metadata').toPandas()
+    brokeridlist = np.unique(brokerdf['broker_id'])
+    brokeridlist = brokeridlist[np.logical_not(np.isnan(brokeridlist))]
+    out = pd.DataFrame(
+        [np.zeros(len(brokeridlist))]*len(brokeridlist), 
+        index=brokeridlist, columns=brokeridlist)
+    return out
+
+
 if __name__ == '__main__':
 
     symbol = 'TD'
@@ -45,12 +55,4 @@ if __name__ == '__main__':
         print ('get dailyorders done in: %.2f norders: %d before: %s' %\
             (time.time()-t0, dfday.count(), tend_string))
 
-
-    brokerdf = spark.sql('SELECT * FROM broker_metadata').toPandas()
-    brokeridlist = np.unique(brokerdf['broker_id'])
-    brokeridlist = brokeridlist[np.logical_not(np.isnan(brokeridlist))]
-    brokertransfermatrix = pd.DataFrame([np.zeros(len(brokeridlist))]*len(brokeridlist), 
-        index=brokeridlist, columns=brokeridlist)
-    print (brokertransfermatrix)
-
-    trxfn.features(dfday.toPandas(), transfermatrix=brokertransfermatrix)
+    trxfn.features(dfday.toPandas(), brokertrfmatrix())
