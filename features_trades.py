@@ -16,7 +16,7 @@ def dailytrades(symbol, date_string):
             buy_broker,
             sell_broker,
             trade_condition,
-            record_type,
+            record_type
         FROM trades 
         WHERE symbol = '%s' 
             AND date_string = '%s' 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         tstart_string, tend_string, freq, tz='US/Eastern')
 
     # get all transactions prior to tradingtimes[-1]
-    dfday = dailytrades(symbol, date_string, venue)
+    dfday = dailytrades(symbol, date_string)
     dfday = utils.subsetbytime(dfday, tradingtimes[-1])
     dfday.cache()
     if verbose > 0:
