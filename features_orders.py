@@ -63,7 +63,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue)
-    dfday = utils.subsetbytime(dfday, tradingtimes[-1])
+    #dfday = utils.subsetbytime(dfday, tradingtimes[-1])
     dfday.cache()
     if verbose > 0:
         print ('get dailyorders done in: %.2f norders: %d before: %s' %\
