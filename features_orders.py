@@ -69,7 +69,8 @@ def features(symbol, date_string, venue = 'TSX',
         freq = freq)
 
     if verbose > 0:
-        print ('freq:%s len(tradingtimes): %d' % (freq, len(tradingtimes)))
+        print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
+            (freq, tstart_string, tend_string, len(tradingtimes)))
 
 
     # orderbook features
