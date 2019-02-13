@@ -56,8 +56,7 @@ def namer(ordtype, side, touch):
 
 def features(df, touchval, 
     ordtypeoptions = ['New', 'Cancelled', 'Executed'], 
-    sideoptions = ['Buy', 'Sell']
-    ):
+    sideoptions = ['Buy', 'Sell']):
     '''return dict of new order features
     Args:
         df: spark dataframe object
@@ -65,6 +64,8 @@ def features(df, touchval,
     '''
     if type(df) is not pd.DataFrame:
         raise TypeError('df is not pd.DataFrame!')
+    else:
+        df = df.astype({'price': float, 'book_change': float})
 
     filargs = [
         {'ordtype': ordtype, 'side': side, 'touch': touch}
