@@ -161,16 +161,18 @@ def features(symbol, date_string, venue = 'TSX',
         out[dt] = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
 
     if verbose > 1:
-        print ('all order/book features done in: %.2f' % (time.time()-t0a))
+        print ('all order/book features done in: %.2f' % (time.time()-t0all))
     return out
 
 
 if __name__ == '__main__':
 
-    symbol = 'TD'
-    date_string = '2019-02-04'
-    x = features(symbol, date_string, 
-        freq='1H',
-        tstart_string='10:00', 
-        tend_string='11:00', 
-        verbose=1)
+    params = {
+        'symbol': 'TD',
+        'date_string': '2019-02-04',
+        'freq': '1H',
+        'tstart_string': '10:00',
+        'tend_string': '12:00',
+        'verbose': 1}
+
+    x = features(**params)
