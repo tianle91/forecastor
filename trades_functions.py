@@ -2,6 +2,12 @@ import numpy as np
 import pandas as pd
 
 
+def sdweighted(x, weights):
+    mean = np.average(x, weights=weights)
+    meanofsq = np.average(np.power(x, 2), weights=weights)
+    return np.sqrt(meanofsq - np.power(mean, 2))
+
+
 def features_gpbyprice(df):
     '''return features of all trades aggregated by price'''
     ntrades = len(df)
@@ -19,8 +25,7 @@ def features_gpbyprice(df):
 
     if ntrades > 0:
         mean =  np.average(prx, weights=wgt)
-        sd = np.average(np.power(prx, 2), weights=wgt)
-        sd = np.sqrt(sd - np.power(mean, 2))
+        sd = sdweighted(prx, weights=wgt)
         tradeq = np.sum(qty)
         qtypertrade = tradeq/ntrades
 
