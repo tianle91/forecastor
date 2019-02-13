@@ -75,6 +75,5 @@ def features(df, touchval,
 
     out = {}
     for arg in filargs:
-        print (arg)
         out[namer(**arg)] = aggtype(df, filbool(df, **arg))
     return out
