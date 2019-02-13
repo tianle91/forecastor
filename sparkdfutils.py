@@ -39,6 +39,7 @@ def tradingtimes(date_string, tstart_string, tend_string, freq, tz):
         end = pd.to_datetime(date_string + ' %s' % (tend_string)),
         tz = tz,
         freq = freq)
+    out = list(out)
 
     if tstart_string == '09:30':
         # displace by 1ms if at start of trading
