@@ -74,8 +74,9 @@ def features(symbol, date_string, venue = 'TSX',
 
 
     # orderbook features
+    # --------------------------------------------------------------------------
     if verbose > 0:
-        print ('running orderbook features...')
+        print ('running orderbook features for all dt in tradingtimes...')
     
     t1 = time.time()
     bkfeatures = {}
@@ -107,8 +108,15 @@ def features(symbol, date_string, venue = 'TSX',
 
 
     # new orders features
+    # --------------------------------------------------------------------------
+    tstartdt = tradingtimes[0]
+    tenddt = tradingtimes[-1]
+    nordersnew = utils.subsetbytime(dfday, t0, tend).count()
+
     if verbose > 0:
-        print ('running new orders features...')
+        print ('running new orders features for all dt in tradingtimes...')
+        print ('there are %d new orders from %s to %s' %\
+            (nordersnew, t0, tend))
 
     t1 = time.time()
     ordfeatures = {}
@@ -121,17 +129,20 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = utils.subsetbytime(dfday, dt, dtnext)
         
         ordft = None
-        norders = dftemp.count()
-        if norders > 0:
-            # only when new orders arrived
-            touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
-            ordft = ordfn.features(dftemp.toPandas(), touchtemp)
+        if nordersnew > 0:
+            # don't bother counting if no new orders in entire time period
+            norders = dftemp.count() 
+            if norders > 0:
+                # only when new orders arrived
+                touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
+                ordft = ordfn.features(dftemp.toPandas(), touchtemp)
             
         ordfeatures[dt] = ordft
         dt = dtnext
         
         if verbose > 0:
-            sreport = 'dt: %s norders: %d done in: %.2f' % (dt, norders, time.time()-t0)
+            sreport = 'dt: %s norders: %d done in: %.2f' %\
+                (dt, norders, time.time()-t0)
             if verbose > 1:
                 sreport += '\n\tfeatures:\n\t' + str(ordft)
             print (sreport)
@@ -154,4 +165,5 @@ if __name__ == '__main__':
 
     symbol = 'TD'
     date_string = '2019-02-04'
-    x = features(symbol, date_string, tstart_string='10:00', tend_string='11:00', verbose=2)
+    x = features(symbol, date_string, 
+        tstart_string='10:00', tend_string='11:00', verbose=2)
