@@ -20,7 +20,7 @@ def features_gpbyprice(df):
     if ntrades > 0:
         mean =  np.average(prx, weights=wgt)
         sd = np.average(np.power(prx, 2), weights=wgt)
-        stdev = np.sqrt(stdev - np.power(mean, 2))
+        sd = np.sqrt(sd - np.power(mean, 2))
         tradeq = np.sum(qty)
         qtypertrade = tradeq/ntrades
 
