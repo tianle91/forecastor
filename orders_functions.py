@@ -4,7 +4,7 @@ import pandas as pd
 
 def filbool(df, ordtype=None, side=None, touch=None):
     '''return filter condition boolean'''
-    b = None
+    b = np.repeat(True, len(df))
 
     if ordtype is None:
         pass
@@ -33,8 +33,7 @@ def filbool(df, ordtype=None, side=None, touch=None):
 
 def aggtype(df, filbool):
     '''return count/sum of df.filter(filstr)'''
-    if filbool is not None:
-        df = df.loc[filbool,:]
+    df = df.loc[filbool, :]
     return {'Number': len(df), 'Volume': df['book_change'].abs().sum()}
 
 
