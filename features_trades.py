@@ -53,4 +53,4 @@ if __name__ == '__main__':
         index=brokeridlist, columns=brokeridlist)
     print (brokertransfermatrix)
 
-    trxfn.features(dfday.toPandas(), ttrfm=brokertransfermatrix)
+    trxfn.features(dfday.toPandas(), transfermatrix=brokertransfermatrix)
