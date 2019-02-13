@@ -12,11 +12,9 @@ def dailytrades(symbol, date_string):
             time,
             trade_size AS quantity,
             price,
-            listing_exchange,
             buy_broker,
             sell_broker,
-            trade_condition,
-            record_type
+            trade_condition
         FROM trades 
         WHERE symbol = '%s' 
             AND date_string = '%s' 
