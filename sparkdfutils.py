@@ -31,7 +31,7 @@ def subsetbytime(df, timestamp0, timestamp1=None, verbose=0):
     return out
 
 
-def tradingtimes(date_string, tstart_string='09:30', tend_string='16:00', freq='1min', tz='US/Eastern'):
+def tradingtimes(date_string, tstart_string, tend_string, freq, tz):
     '''return array of datetimes by freq in US/Eastern tz'''
 
     out = pd.date_range(
