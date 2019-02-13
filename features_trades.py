@@ -45,3 +45,5 @@ if __name__ == '__main__':
         print ('get dailyorders done in: %.2f norders: %d before: %s' %\
             (time.time()-t0, dfday.count(), tend_string))
 
+
+    brokerdf = spark.sql('SELECT * FROM broker_metadata').toPandas()
