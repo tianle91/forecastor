@@ -12,7 +12,7 @@ def features_gpbyprice(df):
     '''return features of all trades aggregated by price'''
     ntrades = len(df)
     dfgpbyprx = df.groupby('price').agg({'quantity': 'sum'})
-    print (dfgpbyprx)
+    #print (dfgpbyprx)
 
     prx = df['price']
     qty = df['quantity']
