@@ -45,7 +45,7 @@ def features_gpbybroker(df, transfermatrix):
     tfmcounts = transfermatrix.copy()
     tradevolume = df.groupby(['buy_broker', 'sell_broker'])['quantity'].sum()
     tfmvolume = transfermatrix.copy()
-    return {tradecounts, tradevolume}
+    return (tradecounts, tradevolume)
 
 
 def features(df, transfermatrix):
