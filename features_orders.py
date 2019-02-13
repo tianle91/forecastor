@@ -132,6 +132,7 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = utils.subsetbytime(dfday, dt, dtnext)
         
         ordft = None
+        norders = 0
         if nordersnew > 0:
             # don't bother counting if no new orders in entire time period
             norders = dftemp.count() 
