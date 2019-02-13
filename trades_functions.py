@@ -64,7 +64,10 @@ def features(df, transfermatrix):
     elif not {'price', 'quantity', 'buy_broker', 'sell_broker'}.issubset(df.columns):
         raise ValueError('''['price', 'quantity', 'buy_broker', 'sell_broker'] not in df.columns!''')
     else:
-        df = df.astype({'price': float, 'quantity': float})
+        df = df.astype({'price': float, 
+            'quantity': float,
+            'buy_broker': str,
+            'sell_broker': str})
 
     out = {
         'gpbyprice': features_gpbyprice(df),
