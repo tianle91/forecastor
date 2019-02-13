@@ -55,4 +55,15 @@ if __name__ == '__main__':
         print ('get dailyorders done in: %.2f norders: %d before: %s' %\
             (time.time()-t0, dfday.count(), tend_string))
 
+    # count number of new orders
+    tstartdt = tradingtimes[0]
+    tenddt = tradingtimes[-1]
+    ntradesnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
+
+    if verbose > 0:
+        print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
+            (freq, tstart_string, tend_string, len(tradingtimes)))
+
+
     trxfn.features(dfday.toPandas(), brokertrfmatrix())
+
