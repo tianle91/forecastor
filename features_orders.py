@@ -57,10 +57,12 @@ def features(symbol, date_string, venue = 'TSX',
     t0all = time.time()
     t0 = time.time()
     dfday = dailyorders(symbol, date_string, venue, tlim = tend_string)
+    nordersnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
+
     dfday.cache()
     if verbose > 0:
-        print ('get dailyorders done in: %.2f norders: %d' %\
-            (time.time()-t0, dfday.count()))
+        print ('get dailyorders done in: %.2f norders: %d before: %s' %\
+            (time.time()-t0, dfday.count(), tend_string))
 
     tradingtimes = pd.date_range(
         start = pd.to_datetime(date_string + ' %s' % (tstart_string)),
@@ -69,6 +71,7 @@ def features(symbol, date_string, venue = 'TSX',
         freq = freq)
 
     if tstart_string == '09:30':
+        # displace by 1ms if at start of trading
         tradingtimes[0] = pd.to_datetime(date_string + ' %s:00.001' % (tstart_string))
 
     if verbose > 0:
@@ -90,7 +93,7 @@ def features(symbol, date_string, venue = 'TSX',
         t0 = time.time()
         bkft = bkftprev
 
-        if dt > dtprev:
+        if nordersnew > 0 and dt > dtprev:
             # only when dt has advanced past tradingtimes[0]
             if utils.subsetbytime(dfday, dtprev, dt).count() > 0:
                 # only when new orders arrived
@@ -114,7 +117,7 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     tstartdt = tradingtimes[0]
     tenddt = tradingtimes[-1]
-    nordersnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
+    
 
     if verbose > 0:
         print ('running new orders features for all dt in tradingtimes...')
