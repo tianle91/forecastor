@@ -42,9 +42,13 @@ def features_gpbybroker(df):
     '''return features of all trades aggregated by broker'''
 
     def worker(brokercolname):
-        print (df.groupby(brokercolname).agg('count'))
+        out = df.groupby(brokercolname).agg({'quantity': 'sum', brokercolname: 'count'})
+        return out
         
-    pass
+    out = {}
+    for cname in ['buy_broker', 'sell_broker']:
+        out[cname] = worker(cname)
+    return out
 
 
 def features(df):
