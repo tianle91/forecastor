@@ -111,12 +111,12 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     tstartdt = tradingtimes[0]
     tenddt = tradingtimes[-1]
-    nordersnew = utils.subsetbytime(dfday, t0, tend).count()
+    nordersnew = utils.subsetbytime(dfday, t0dt, tenddt).count()
 
     if verbose > 0:
         print ('running new orders features for all dt in tradingtimes...')
         print ('there are %d new orders from %s to %s' %\
-            (nordersnew, t0, tend))
+            (nordersnew, t0dt, tenddt))
 
     t1 = time.time()
     ordfeatures = {}
