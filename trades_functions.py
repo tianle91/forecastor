@@ -38,14 +38,23 @@ def features_gpbyprice(df):
     return out
 
 
+def filltrfm(aggdf, transfermatrix):
+    m = transfermatrix.copy()
+    for buy_broker, dfsub in aggdf.groupby(level=0):
+        for sell_broker, dfsub1 in dfsub.groupby(level=0):
+            m.loc[sell_broker, buy_broker] += float(dfsub1)
+    return m
+
+
 def features_gpbybroker(df, transfermatrix):
     '''return features of all trades aggregated by broker'''
-
     tradecounts = df.groupby(['buy_broker', 'sell_broker']).agg({'time': 'count'})
-    tfmcounts = transfermatrix.copy()
     tradevolume = df.groupby(['buy_broker', 'sell_broker']).agg({'quantity': 'sum'})
-    tfmvolume = transfermatrix.copy()
-    return (tradecounts, tradevolume)
+
+    out = {
+        'Counts': filltrfm(tradecounts, transfermatrix), 
+        'Volume': filltrfm(tradevolume, transfermatrix)}
+    return out
 
 
 def features(df, transfermatrix):
