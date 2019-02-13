@@ -28,6 +28,7 @@ def brokertrfmatrix():
     brokerdf = spark.sql('SELECT * FROM broker_metadata').toPandas()
     brokeridlist = np.unique(brokerdf['broker_id'])
     brokeridlist = brokeridlist[np.logical_not(np.isnan(brokeridlist))]
+    brokeridlist = np.arange(start=1, stop=max(brokeridlist)+1)
     brokeridlist = brokeridlist.astype(int).astype(str)
     out = pd.DataFrame(
         [np.zeros(len(brokeridlist))]*len(brokeridlist), 
