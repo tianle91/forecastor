@@ -28,6 +28,14 @@ class Book(object):
         self.touch = touch(self.df)
 
 
+    def updatebook(self, dfqchange):
+        '''return df new Book with updated quantities'''
+        newdf = self.df.copy()
+        newdf = newdf.merge(dfqchange, on=['price', 'side'], how='outer', suffixes=('_bk', '_bkch'))
+        print (newdf.head())
+        pass
+
+
     def isbat(self):
         '''return bool of buy-at-touch'''
         bestbid = self.touch['bestbid']
