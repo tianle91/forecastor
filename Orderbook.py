@@ -19,7 +19,7 @@ def sanitizedf(df):
     elif not {'side', 'price', 'quantity'}.issubset(df.columns):
         raise ValueError('df does not have side, price, quantity columns!')
     else:
-        return df
+        return df.astype({'price': float, 'quantity': float})
 
 
 class Book(object):
