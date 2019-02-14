@@ -25,18 +25,54 @@ def dailyorders(symbol, date_string, venue):
     return spark.sql(s%sargs) 
 
 
-def orderbook(ordersdf, timestamp, verbose=0):
-    '''return table of orderbook'''
-    tstr = utils.utctimestamp(timestamp)
-    bk = ordersdf.filter('''time < timestamp '%s' ''' % (tstr))
-    bk = bk.groupby(['side', 'price']).agg({'book_change': 'sum'})
+def orderbook(ordersdf, verbose=0):
+    '''return table of orders agg by side, price'''
+    bk = ordersdf.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
     bk = bk.filter('quantity > 0')
     bk = bk.orderBy('price')
-
     if verbose > 0:
         print ('len:', bk.count())
     return bk
+
+
+def updateiter(ordersprev, ordersnew, bkold=None):
+    '''return bknew, bkft, ordft
+    # -------------------------------------------------- #
+    #    dtprev               dt                  dtnext #
+    # -------------------------------------------------- # 
+    # -- | --- ordersprev --- | --- ordersnew --- | ---- # 
+    # -------------------------------------------------- # 
+    #    bkold                bknew:bkft                 #
+    # -------------------------------------------------- # 
+    #                         | --- ordft ------- | ---- # 
+    # -------------------------------------------------- #
+    '''
+    nordprev = ordersprev.count()
+    if nordprev > 0:
+        # only update if there are ordersprev
+        bkch = orderbook(ordersprev).toPandas()
+        if bkold is None:
+            bknew = Book(bkch)
+        else:
+            bknew = bkold.updatebook(bkch)
+    else:
+        if bkold is None:
+            raise ValueError('ordersprev.count()==0 and bkold is None')
+        else:
+            bknew = bkold
+    # get book features
+    bkft = bknew.features()
+
+    nordnew = ordersnew.count()
+    if nordnew > 0:
+        # only get order features if there are ordersnew
+        touchtemp = bkft['bestbid'], bkft['bestask']
+        ordft = ordfn.features(ordersnew.toPandas(), touchtemp)
+    else:
+        ordft = None
+
+    return bknew, bkft, ordft
 
 
 def features(symbol, date_string, venue = 'TSX',
@@ -79,28 +115,38 @@ def features(symbol, date_string, venue = 'TSX',
             (freq, tstart_string, tend_string, len(tradingtimes)))
 
 
-    # orderbook features
+    # orderbook, neworders features
     # --------------------------------------------------------------------------
     if verbose > 0:
         print ('running orderbook features for all dt in tradingtimes...')
     
     t1 = time.time()
-    bkfeatures = {}
+    bkordfeatures = {}
+    bkordfeatures[tradingtimes[-1]] = None
+
+    # initialize
+    dt = tradingtimes[0]
+    dtnext = tradingtimes[1]
+    ordersprev = utils.subsetbytime(dfday, dt)
+    ordersnew = utils.subsetbytime(dfday, dt, dtnext)
+    # update
+    bk, bkft, ordft = updateiter(ordersprev, ordersnew)
+    bkordfeatures[dt] = {'book': bkft, 'orders': ordft}
+
     dtprev = tradingtimes[0]
-    bkftprev = Book(orderbook(dfday, dtprev).toPandas()).features()
+    dt = tradingtimes[1]
+    for dtnext in tradingtimes[2:]:
 
-    for dt in tradingtimes:
         t0 = time.time()
-        bkft = bkftprev
 
-        if nordersnew > 0 and dt > dtprev:
-            # only when dt has advanced past tradingtimes[0]
-            if utils.subsetbytime(dfday, dtprev, dt).count() > 0:
-                # only when new orders arrived
-                bkft = Book(orderbook(dfday, dt).toPandas()).features()
-        
-        bkfeatures[dt] = bkft
+        ordersprev = ordersnew
+        ordersnew = utils.subsetbytime(dfday, dt, dtnext)
+        bk, bkft, ordft = updateiter(ordersprev, ordersnew, bk)
+        bkordfeatures[dt] = {'book': bkft, 'orders': ordft}
+
+        # update times
         dtprev = dt
+        dt = dtnext
 
         if verbose > 0:
             sreport = 'dt: %s done in: %.2f' % (dt, time.time()-t0)
@@ -108,61 +154,9 @@ def features(symbol, date_string, venue = 'TSX',
                 sreport += '\n\tfeatures:' + str(bkft)
             print (sreport)
 
-    if verbose > 0:
-        print ('orderbook features done in: %.2f' % (time.time()-t1))
-        # 3secs each if new orders, around 5mins total
-
-
-    # new orders features
-    # --------------------------------------------------------------------------
-    if verbose > 0:
-        print ('running new orders features for all dt in tradingtimes...')
-        print ('there are %d new orders from %s to %s' %\
-            (nordersnew, tstartdt, tenddt))
-
-    t1 = time.time()
-    ordfeatures = {}
-    ordfeatures[tradingtimes[-1]] = None
-    dt = tradingtimes[0]
-
-    for dtnext in tradingtimes[1:]:
-        # we run on new orders between [dt, dtnext)
-        t0 = time.time()
-        dftemp = utils.subsetbytime(dfday, dt, dtnext)
-        
-        ordft = None
-        norders = 0
-        if nordersnew > 0:
-            # don't bother counting if no new orders in entire time period
-            norders = dftemp.count() 
-            if norders > 0:
-                # only when new orders arrived
-                touchtemp = bkfeatures[dt]['bestbid'], bkfeatures[dt]['bestask']
-                ordft = ordfn.features(dftemp.toPandas(), touchtemp)
-            
-        ordfeatures[dt] = ordft
-        dt = dtnext
-        
-        if verbose > 0:
-            sreport = 'dt: %s norders: %d done in: %.2f' %\
-                (dt, norders, time.time()-t0)
-            if verbose > 1:
-                sreport += '\n\tfeatures:\n\t' + str(ordft)
-            print (sreport)
-
-    if verbose > 0:
-        print ('new orders features done in: %.2f' % (time.time()-t1))
-
-
-    # aggregate into dict with time as key
-    # --------------------------------------------------------------------------
-    out = {}
-    for dt in tradingtimes:
-        out[dt] = {'book': bkfeatures[dt], 'orders': ordfeatures[dt]}
-
     if verbose > 1:
         print ('all order/book features done in: %.2f' % (time.time()-t0all))
-    return tradingtimes, out
+    return tradingtimes, bkordfeatures
 
 
 if __name__ == '__main__':
