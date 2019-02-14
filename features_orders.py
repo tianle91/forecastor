@@ -90,6 +90,9 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
+
+    # prep stuff
+    # --------------------------------------------------------------------------
     if verbose > 0:
         t0all = time.time()
         t0 = time.time()
@@ -113,6 +116,7 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
             (freq, tstart_string, tend_string, len(tradingtimes)))
+    # 2mins
 
 
     # orderbook, neworders features
@@ -140,6 +144,7 @@ def features(symbol, date_string, venue = 'TSX',
             sreport += '\n\tbook features:' + str(bkft)
             sreport += '\n\torder features:' + str(ordft)
         print (sreport)
+        # 15s
 
     dtprev = tradingtimes[0]
     dt = tradingtimes[1]
