@@ -32,8 +32,10 @@ class Book(object):
         '''return df new Book with updated quantities'''
         newdf = self.df.copy()
         newdf = newdf.merge(dfqchange, on=['price', 'side'], how='outer', suffixes=('_bk', '_bkch'))
+        newdf['quantity'] = newdf['quantity_bk'] + newdf['quantity_bkch']
+        newdf = newdf[['price', 'side', 'quantity']]
         print (newdf.head())
-        pass
+        return Book(newdf)
 
 
     def isbat(self):
