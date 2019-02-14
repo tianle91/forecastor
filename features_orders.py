@@ -107,13 +107,6 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('get dailyorders done in: %.2f norders: %d before: %s' %\
             (time.time()-t0, dfday.count(), tend_string))
-
-    # count number of new orders
-    tstartdt = tradingtimes[0]
-    tenddt = tradingtimes[-1]
-    nordersnew = utils.subsetbytime(dfday, tstartdt, tenddt).count()
-
-    if verbose > 0:
         print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
             (freq, tstart_string, tend_string, len(tradingtimes)))
     # 2mins
