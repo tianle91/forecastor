@@ -34,7 +34,7 @@ class Book(object):
         newdf = newdf.merge(dfqchange, on=['price', 'side'], how='outer', suffixes=('_bk', '_bkch'))
         newdf['quantity'] = newdf['quantity_bk'] + newdf['quantity_bkch']
         newdf = newdf[['price', 'side', 'quantity']]
-        print (newdf.head())
+        #print (newdf.head())
         return Book(newdf)
 
 
