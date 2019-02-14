@@ -91,10 +91,13 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 1:
         print ('orders features done in: %.2f' % (time.time()-t1))
 
+    out = {}
+    for dt in tradingtimes:
+        out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
     if verbose > 0:
         print ('all book / orders features done in: %.2f' % (time.time()-t0))
     
-    return bookfeatures, ordersfeatures
+    return out
 
 
 if __name__ == '__main__':
