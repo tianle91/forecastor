@@ -1,3 +1,4 @@
+# NO SPARK HERE, ONLY PANDAS
 import numpy as np
 import pandas as pd
 
@@ -53,27 +54,26 @@ def namer(ordtype, side, touch):
     return s
 
 
-def features(df, touchval, 
-    ordtypeoptions = ['New', 'Cancelled', 'Executed'], 
-    sideoptions = ['Buy', 'Sell']):
-    '''return dict of new order features
-    Args:
-        df: spark dataframe object
-        touchval: tuple of (bestbid, bestask)
-    '''
-    if type(df) is not pd.DataFrame:
-        raise TypeError('df is not pd.DataFrame!')
-    else:
-        df = df.astype({'price': float, 'book_change': float})
+class Orders(object):
 
-    filargs = [
-        {'ordtype': ordtype, 'side': side, 'touch': touch}
-        for ordtype in [None] + ordtypeoptions
-        for side in [None] + sideoptions
-        for touch in [None, touchval]
-    ]
+    def __init__(self, df, verbose=0):
+        if type(df) is not pd.DataFrame:
+            raise TypeError('df is not pd.DataFrame!')
+        else:
+            self.df = df.astype({'price': float, 'book_change': float})
+        self.verbose = verbose
 
-    out = {}
-    for arg in filargs:
-        out[namer(**arg)] = aggtype(df, filbool(df, **arg))
-    return out
+    def features(self, touchval):
+        '''return dict of covariates of '''
+
+        filargs = [
+            {'ordtype': ordtype, 'side': side, 'touch': touch}
+            for ordtype in [None, 'New', 'Cancelled', 'Executed']
+            for side in [None, 'Buy', 'Sell']
+            for touch in [None, touchval]
+        ]
+
+        out = {}
+        for arg in filargs:
+            out[namer(**arg)] = aggtype(self.df, filbool(df, **arg))
+        return out

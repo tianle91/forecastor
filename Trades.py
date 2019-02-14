@@ -1,3 +1,4 @@
+# NO SPARK HERE, ONLY PANDAS
 import numpy as np
 import pandas as pd
 
@@ -57,23 +58,28 @@ def features_gpbybroker(df, transfermatrix):
     return out
 
 
-def features(df, transfermatrix):
-    '''return dict of features'''
-    if type(df) is not pd.DataFrame:
-        raise TypeError('df is not pd.DataFrame!')
-    elif not {'price', 'quantity', 'buy_broker', 'sell_broker'}.issubset(df.columns):
-        raise ValueError('''['price', 'quantity', 'buy_broker', 'sell_broker'] not in df.columns!''')
-    else:
-        df = df.astype({
-            'price': float, 
-            'quantity': float,
-            'buy_broker': int,
-            'sell_broker': int})
-        df = df.astype({
-            'buy_broker': str,
-            'sell_broker': str})
+class Trades(object):
 
-    out = {
-        'gpbyprice': features_gpbyprice(df),
-        'gpbybroker': features_gpbybroker(df, transfermatrix)}
-    return out
+    def __init__(self, df):
+        if type(df) is not pd.DataFrame:
+            raise TypeError('df is not pd.DataFrame!')
+        elif not {'price', 'quantity', 'buy_broker', 'sell_broker'}.issubset(df.columns):
+            raise ValueError('''['price', 'quantity', 'buy_broker', 'sell_broker'] not in df.columns!''')
+        else:
+            df = df.astype({
+                'price': float, 
+                'quantity': float,
+                'buy_broker': int,
+                'sell_broker': int})
+            df = df.astype({
+                'buy_broker': str,
+                'sell_broker': str})
+            self.df = df
+
+
+    def features(self, transfermatrix):
+        '''return dict of features'''
+        out = {
+            'gpbyprice': features_gpbyprice(df),
+            'gpbybroker': features_gpbybroker(df, transfermatrix)}
+        return out

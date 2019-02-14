@@ -3,11 +3,11 @@ import pandas as pd
 import numpy as np
 
 import sparkdfutils as utils
-import orders_functions as ordfn
-from Orderbook import Book
+from Book import Book
+from Orders import Orders
 
 
-def dailyorders(symbol, date_string, venue):
+def dailyorders(symbol, date_string, venue=):
     '''return table of orders'''
     s = '''SELECT
             book_change, 
@@ -36,45 +36,6 @@ def orderbook(ordersdf, verbose=0):
     return bk
 
 
-def updateiter(ordersprev, ordersnew, bkold=None):
-    '''return bknew, bkft, ordft
-    # -------------------------------------------------- #
-    #    dtprev               dt                  dtnext #
-    # -------------------------------------------------- # 
-    # -- | --- ordersprev --- | --- ordersnew --- | ---- # 
-    # -------------------------------------------------- # 
-    #    bkold                bknew:bkft                 #
-    # -------------------------------------------------- # 
-    #                         | --- ordft ------- | ---- # 
-    # -------------------------------------------------- #
-    '''
-    nordprev = ordersprev.count()
-    if nordprev > 0:
-        # only update if there are ordersprev
-        bkch = orderbook(ordersprev).toPandas()
-        if bkold is None:
-            bknew = Book(bkch)
-        else:
-            bknew = bkold.updatebook(bkch)
-    else:
-        if bkold is None:
-            raise ValueError('ordersprev.count()==0 and bkold is None')
-        else:
-            bknew = bkold
-    # get book features
-    bkft = bknew.features()
-
-    nordnew = ordersnew.count()
-    if nordnew > 0:
-        # only get order features if there are ordersnew
-        touchtemp = bkft['bestbid'], bkft['bestask']
-        ordft = ordfn.features(ordersnew.toPandas(), touchtemp)
-    else:
-        ordft = None
-
-    return bknew, bkft, ordft
-
-
 def features(symbol, date_string, venue = 'TSX',
     freq = '1min', tstart_string = '09:30', tend_string = '16:00',
     verbose = 0):
@@ -90,11 +51,7 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
-
-    # prep stuff
-    # --------------------------------------------------------------------------
     if verbose > 0:
-        t0all = time.time()
         t0 = time.time()
 
     tradingtimes = utils.tradingtimes(date_string, 
@@ -102,67 +59,42 @@ def features(symbol, date_string, venue = 'TSX',
 
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue)
-    dfday = utils.subsetbytime(dfday, tradingtimes[-1])
     dfday.cache()
-    if verbose > 0:
-        print ('get dailyorders done in: %.2f norders: %d before: %s' %\
-            (time.time()-t0, dfday.count(), tend_string))
-        print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
-            (freq, tstart_string, tend_string, len(tradingtimes)))
-    # 5min
-
-
-    # features
-    # --------------------------------------------------------------------------
-    if verbose > 0:
-        print ('running features for all dt in tradingtimes...')
-    
-    t1 = time.time()
-    bkordfeatures = {}
-    bkordfeatures[tradingtimes[-1]] = None
-
-    # initialize
-    t0 = time.time()
-    dt = tradingtimes[0]
-    dtnext = tradingtimes[1]
-    ordersprev = utils.subsetbytime(dfday, dt)
-    ordersnew = utils.subsetbytime(dfday, dt, dtnext)
-    # update
-    bk, bkft, ordft = updateiter(ordersprev, ordersnew)
-    bkordfeatures[dt] = {'book': bkft, 'orders': ordft}
 
     if verbose > 0:
-        sreport = 'initialize dt: %s done in: %.2f' % (dt, time.time()-t0)
-        if verbose > 1:
-            sreport += '\n\tbook features:' + str(bkft)
-            sreport += '\n\torder features:' + str(ordft)
-        print (sreport)
-        # 15s
+        print ('cached orders for %s done in: %.2f norders: %d' %\
+            (date_string, time.time()-t0, dfday.count()))
 
-    dtprev = tradingtimes[0]
-    dt = tradingtimes[1]
-    for dtnext in tradingtimes[2:]:
 
-        t0 = time.time()
-        ordersprev = ordersnew
-        ordersnew = utils.subsetbytime(dfday, dt, dtnext)
-        bk, bkft, ordft = updateiter(ordersprev, ordersnew, bk)
-        bkordfeatures[dt] = {'book': bkft, 'orders': ordft}
-
-        # update times
-        dtprev = dt
-        dt = dtnext
-
-        if verbose > 0:
-            sreport = 'dt: %s done in: %.2f' % (dt, time.time()-t0)
-            if verbose > 1:
-                sreport += '\n\tbook features:' + str(bkft)
-                sreport += '\n\torder features:' + str(ordft)
-            print (sreport)
-
+    # book features
     if verbose > 1:
-        print ('all order/book features done in: %.2f' % (time.time()-t0all))
-    return tradingtimes, bkordfeatures
+        t1 = time.time()
+    bookfeatures = {}
+    for dt in tradingtimes:
+        dftemp = utils.subsetbytime(dfday, dt).toPandas()
+        bookfeatures[dt] = Book(dftemp, verbose=verbose-1).features()
+    if verbose > 1:
+        print ('book features done in: %.2f' % (time.time()-t1))
+
+
+    # orders features
+    if verbose > 1:
+        t1 = time.time()
+    ordersfeatures = {}
+    ordersfeatures[-1] = None
+    dt = tradingtimes[0]
+    for dtnext in tradingtimes[1:]:
+        dftemp = utils.subsetbytime(dfday, dt, dtnext).toPandas()
+        touchval = bookfeatures[dt]['maxbid'], bookfeatures[dt]['minask']
+        ordersfeatures[dt] = Orders(dftemp, verbose=verbose-1).features(touchval)
+        dt = dtnext
+    if verbose > 1:
+        print ('orders features done in: %.2f' % (time.time()-t1))
+
+    if verbose > 0:
+        print ('all book / orders features done in: %.2f' % (time.time()-t0))
+    
+    return bookfeatures, ordersfeatures
 
 
 if __name__ == '__main__':
