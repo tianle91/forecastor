@@ -112,7 +112,7 @@ def features(symbol, date_string,
 
     if verbose > 0:
         print ('all trades features done in: %.2f' % (time.time()-t0all))
-    return tradesfeatures
+    return tradingtimes, tradesfeatures
 
 
 if __name__ == '__main__':

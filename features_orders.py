@@ -162,7 +162,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 1:
         print ('all order/book features done in: %.2f' % (time.time()-t0all))
-    return out
+    return tradingtimes, out
 
 
 if __name__ == '__main__':
