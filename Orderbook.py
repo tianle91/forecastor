@@ -38,6 +38,7 @@ class Book(object):
             on=['price', 'side'], 
             how='outer', 
             suffixes=('_bk', '_bkch'))
+        print (newdf)
         newdf['quantity'] = newdf['quantity_bk'] + newdf['quantity_bkch']
         newdf = newdf.loc[newdf['quantity'] > 0, ['price', 'side', 'quantity']]
         return Book(newdf)
