@@ -39,7 +39,8 @@ class Book(object):
             how='outer', 
             suffixes=('_bk', '_bkch'))
         newdf['quantity'] = newdf['quantity_bk'] + newdf['quantity_bkch']
-        return Book(newdf[['price', 'side', 'quantity']])
+        newdf = newdf.loc[newdf['quantity'] > 0, ['price', 'side', 'quantity']]
+        return Book(newdf)
 
 
     def isbat(self):
