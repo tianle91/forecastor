@@ -29,7 +29,7 @@ def orderbook(ordersdf, verbose=0):
     '''return table of orders agg by side, price'''
     bk = ordersdf.groupby(['side', 'price']).agg({'book_change': 'sum'})
     bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
-    bk = bk.filter('quantity > 0')
+    bk = bk.filter('quantity != 0')
     bk = bk.orderBy('price')
     if verbose > 0:
         print ('len:', bk.count())
@@ -109,10 +109,10 @@ def features(symbol, date_string, venue = 'TSX',
             (time.time()-t0, dfday.count(), tend_string))
         print ('freq:%s tstart: %s tend: %s len(tradingtimes): %d' %\
             (freq, tstart_string, tend_string, len(tradingtimes)))
-    # 2mins
+    # 5min
 
 
-    # orderbook, neworders features
+    # features
     # --------------------------------------------------------------------------
     if verbose > 0:
         print ('running features for all dt in tradingtimes...')
