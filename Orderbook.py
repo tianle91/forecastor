@@ -13,25 +13,28 @@ def touch(df):
     return {'bestbid': bestbid, 'bestask': bestask}
 
 
+def sanitizedf(df):
+    if type(df) is not pd.DataFrame:
+        raise TypeError('df is not pd.DataFrame!')
+    elif not {'side', 'price', 'quantity'}.issubset(df.columns):
+        raise ValueError('df does not have side, price, quantity columns!')
+    else:
+        return df
+
+
 class Book(object):
 
     def __init__(self, df, verbose=0):
         '''initialize with dataframe and touch'''
-        if type(df) is not pd.DataFrame:
-            raise TypeError('df is not pd.DataFrame!')
-        if not {'side', 'price', 'quantity'}.issubset(df.columns):
-            raise ValueError('df does not have side, price, quantity columns!')
-
-        if verbose > 0:
-            print ('len(df):', len(df))
-        self.df = df.astype({'price': float, 'quantity': float})
+        self.df = sanitizedf(df)
         self.touch = touch(self.df)
 
 
     def updatebook(self, dfqchange):
         '''return df new Book with updated quantities'''
         newdf = self.df.copy()
-        newdf = newdf.merge(dfqchange, on=['price', 'side'], how='outer', suffixes=('_bk', '_bkch'))
+        newdf = newdf.merge(sanitizedf(dfqchange), 
+            on=['price', 'side'], how='outer', suffixes=('_bk', '_bkch'))
         newdf['quantity'] = newdf['quantity_bk'] + newdf['quantity_bkch']
         return Book(newdf[['price', 'side', 'quantity']])
 
