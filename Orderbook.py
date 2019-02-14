@@ -33,8 +33,11 @@ class Book(object):
     def updatebook(self, dfqchange):
         '''return df new Book with updated quantities'''
         newdf = self.df.copy()
-        newdf = newdf.merge(sanitizedf(dfqchange), 
-            on=['price', 'side'], how='outer', suffixes=('_bk', '_bkch'))
+        newdf = newdf.merge(
+            sanitizedf(dfqchange), 
+            on=['price', 'side'], 
+            how='outer', 
+            suffixes=('_bk', '_bkch'))
         newdf['quantity'] = newdf['quantity_bk'] + newdf['quantity_bkch']
         return Book(newdf[['price', 'side', 'quantity']])
 
