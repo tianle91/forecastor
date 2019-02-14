@@ -118,7 +118,7 @@ def features(symbol, date_string, venue = 'TSX',
     # orderbook, neworders features
     # --------------------------------------------------------------------------
     if verbose > 0:
-        print ('running orderbook features for all dt in tradingtimes...')
+        print ('running features for all dt in tradingtimes...')
     
     t1 = time.time()
     bkordfeatures = {}
@@ -151,7 +151,8 @@ def features(symbol, date_string, venue = 'TSX',
         if verbose > 0:
             sreport = 'dt: %s done in: %.2f' % (dt, time.time()-t0)
             if verbose > 1:
-                sreport += '\n\tfeatures:' + str(bkft)
+                sreport += '\n\tbook features:' + str(bkft)
+                sreport += '\n\torder features:' + str(ordft)
             print (sreport)
 
     if verbose > 1:
