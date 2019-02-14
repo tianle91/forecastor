@@ -125,6 +125,7 @@ def features(symbol, date_string, venue = 'TSX',
     bkordfeatures[tradingtimes[-1]] = None
 
     # initialize
+    t0 = time.time()
     dt = tradingtimes[0]
     dtnext = tradingtimes[1]
     ordersprev = utils.subsetbytime(dfday, dt)
@@ -133,12 +134,18 @@ def features(symbol, date_string, venue = 'TSX',
     bk, bkft, ordft = updateiter(ordersprev, ordersnew)
     bkordfeatures[dt] = {'book': bkft, 'orders': ordft}
 
+    if verbose > 0:
+        sreport = 'initialize dt: %s done in: %.2f' % (dt, time.time()-t0)
+        if verbose > 1:
+            sreport += '\n\tbook features:' + str(bkft)
+            sreport += '\n\torder features:' + str(ordft)
+        print (sreport)
+
     dtprev = tradingtimes[0]
     dt = tradingtimes[1]
     for dtnext in tradingtimes[2:]:
 
         t0 = time.time()
-
         ordersprev = ordersnew
         ordersnew = utils.subsetbytime(dfday, dt, dtnext)
         bk, bkft, ordft = updateiter(ordersprev, ordersnew, bk)
