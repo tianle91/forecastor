@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def filbool(df, ordtype=None, side=None, touch=None):
-    '''return filter condition boolean'''
+    '''return boolean for filter condition'''
     b = np.repeat(True, len(df))
 
     if ordtype is None:
@@ -33,7 +33,7 @@ def filbool(df, ordtype=None, side=None, touch=None):
 
 
 def aggtype(df, filbool):
-    '''return count/sum of df.filter(filstr)'''
+    '''return dict of Number, Volume of df.filter(filstr)'''
     df = df.loc[filbool, :]
     return {'Number': len(df), 'Volume': df['book_change'].abs().sum()}
 
@@ -63,9 +63,12 @@ class Orders(object):
             self.df = df.astype({'price': float, 'book_change': float})
         self.verbose = verbose
 
+
     def features(self, touchval):
         '''return dict of covariates of '''
 
+        # types of orders to collect Count+Volume for
+        # None represents no filter condition (i.e. All orders)
         filargs = [
             {'ordtype': ordtype, 'side': side, 'touch': touch}
             for ordtype in [None, 'New', 'Cancelled', 'Executed']
@@ -75,5 +78,6 @@ class Orders(object):
 
         out = {}
         for arg in filargs:
+        	# collect Count+Volume of df filtered by filargs
             out[namer(**arg)] = aggtype(self.df, filbool(df, **arg))
         return out
