@@ -46,7 +46,7 @@ def namer(ordtype, side, touch):
         s = ordtype
 
     if side is not None:
-        s += '-' + side + '-'
+        s += '-' + side
     s += '-Orders'
 
     if touch is not None:
