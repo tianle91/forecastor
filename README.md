@@ -5,5 +5,5 @@
 Generative model for trading conditions using TMX Analytics Platform. IPR.
 
 ```
-(order_features(t), trade_features(t)) -> (order_features(t+1), trade_features(t+1))
+z_t <-> (order_features(t), trade_features(t))
 ```
