@@ -25,7 +25,7 @@ class TradeConditionSequence(Sequence):
         if shuffletime:
             self.shufflemap = np.random.permutation(len(self.taxis))
 
-    def get_valattime(self, dt):
+    def getitem_bydt(self, dt):
         '''return all features at single time dt
         '''
         out = self.d[dt]
@@ -43,7 +43,7 @@ class TradeConditionSequence(Sequence):
     def toArray(self):
         '''return numpy array of data arranged by time in axis=0
         '''
-        outresl = [self.get_valattime(dt) for dt in self.taxis]
+        outresl = [self.getitem_bydt(dt) for dt in self.taxis]
         outresl = [l.reshape((1,) + l.shape) for l in outresl]
         return np.concatenate(outresl, axis=0)
 
@@ -54,4 +54,4 @@ class TradeConditionSequence(Sequence):
         idxread = idx
         if self.shuffletime:
             idxread = self.shufflemap[idx]
-        return self.get_valattime(self.taxis[idx])
+        return self.getitem_bydt(self.taxis[idx])
