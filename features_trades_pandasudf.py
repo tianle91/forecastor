@@ -1,10 +1,8 @@
 import time
 import pandas as pd
 import numpy as np
-
 import sparkdfutils as utils
 import trades_functions as trxfn
-
 from pyspark.sql.functions import pandas_udf, PandasUDFType, date_trunc
 
 
@@ -98,7 +96,8 @@ def features(symbol, date_string, venue = 'TSX',
         return pd.DataFrame([[dtutc, json.dumps(tradesft)]], columns = [group_column, json_column])
 
     tradesfeaturespdf = dfnewords.groupby(group_column).apply(tradesfeatures).toPandas()
-    tradesfeatures = {pd.to_datetime(row['utcdtdiscrete']).tz_localize(tz='UTC').tz_convert('US/Eastern'):\
+    tradesfeatures = {
+        pd.to_datetime(row['utcdtdiscrete']).tz_localize(tz='UTC').tz_convert('US/Eastern'):\
         json.loads(row['outputjson'])
         for index, row in ordfeaturespdf}
 

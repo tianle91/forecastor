@@ -1,11 +1,9 @@
 import time
 import pandas as pd
 import numpy as np
-
 import sparkdfutils as utils
 from Book import Book
 from Orders import Orders
-
 from pyspark.sql.functions import pandas_udf, PandasUDFType, date_trunc
 
 
@@ -108,7 +106,8 @@ def features(symbol, date_string, venue = 'TSX',
         return pd.DataFrame([[dtutc, json.dumps(ordft)]], columns = [group_column, json_column])
 
     ordfeaturespdf = dfnewords.groupby(group_column).apply(orderfeatures).toPandas()
-    ordfeatures = {pd.to_datetime(row['utcdtdiscrete']).tz_localize(tz='UTC').tz_convert('US/Eastern'):\
+    ordfeatures = {
+        pd.to_datetime(row['utcdtdiscrete']).tz_localize(tz='UTC').tz_convert('US/Eastern'):\
         json.loads(row['outputjson'])
         for index, row in ordfeaturespdf}
 
