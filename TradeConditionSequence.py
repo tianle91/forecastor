@@ -1,5 +1,10 @@
+import gzip
+import json
+import time
 import numpy as np
+import pandas as pd
 from keras.utils import Sequence 
+
 
 class TradeConditionSequence(Sequence):
 
