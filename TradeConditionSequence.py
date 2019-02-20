@@ -23,9 +23,11 @@ class TradeConditionSequence(Sequence):
         self.taxis.sort()
         # if shuffletime, then get a randomly permuted index array
         if shuffletime:
-        	self.shufflemap = np.random.permutation(len(self.taxis))
+            self.shufflemap = np.random.permutation(len(self.taxis))
 
     def get_valattime(self, dt):
+        '''return all features at single time dt
+        '''
         out = self.d[dt]
         # flatten all in out to numpy matrix
         outm = list(out.values())
@@ -33,15 +35,23 @@ class TradeConditionSequence(Sequence):
         return np.array(outm)
 
     def on_epoch_end(self):
-        # if shuffletime, then regenerate randomly permuted index array
+        '''if shuffletime, update self.shufflemap
+        '''
         if shuffletime:
-        	self.shufflemap = np.random.permutation(len(self.taxis))
+            self.shufflemap = np.random.permutation(len(self.taxis))
+
+    def toArray(self):
+        '''return numpy array of data arranged by time in axis=0
+        '''
+        outresl = [self.get_valattime(dt) for dt in self.taxis]
+        outresl = [l.reshape((1,) + l.shape) for l in outresl]
+        return np.concatenate(outresl, axis=0)
 
     def __len__(self):
         return len(self.taxis)
 
     def __getitem__(self, idx):
-    	idxread = idx
-    	if self.shuffletime:
-    		idxread = self.shufflemap[idx]
-    	return self.get_valattime(self.taxis[idx])
+        idxread = idx
+        if self.shuffletime:
+            idxread = self.shufflemap[idx]
+        return self.get_valattime(self.taxis[idx])
