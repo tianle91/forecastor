@@ -17,21 +17,27 @@ dates = pd.date_range(
 print ('dates:', dates)
 
 
-def getparams(dt):
+def getparams(dt, verbose):
     out = {
         'symbol': symbol,
         'date_string': dt.strftime('%Y-%m-%d'),
         'freq': freq, 
         'tstart_string': tstart_string, 
         'tend_string': tend_string, 
-        'verbose': 1,
+        'verbose': verbose,
     }
     return out
 
-exec(open('features_trades.py').read())
-resdtrades = {dt: features(**getparams(dt)) for dt in dates}
-json.dump(resdtrades, gzip.open('SYM:%s_trades.json.gz', 'wb'))
 
+t1 = time.time()
 exec(open('features_orders.py').read())
-resdorders = {dt: features(**getparams(dt)) for dt in dates}
+resdorders = {dt: features(**getparams(dt, verbose=1)) for dt in dates}
 json.dump(resdtrades, gzip.open('SYM:_%s_orders.json.gz', 'wb'))
+print ('done in: %.2f' % (time.time()-t0))
+
+
+t1 = time.time()
+exec(open('features_trades.py').read())
+resdtrades = {dt: features(**getparams(dt, verbose=1)) for dt in dates}
+json.dump(resdtrades, gzip.open('SYM:%s_trades.json.gz', 'wb'))
+print ('done in: %.2f' % (time.time()-t0))
