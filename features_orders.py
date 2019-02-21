@@ -87,7 +87,7 @@ def features(symbol, date_string, venue = 'TSX',
         t1 = time.time()
         print ('doing orders features')
     ordersfeatures = {}
-    ordersfeatures[-1] = None
+    ordersfeatures[tradingtimes[-1]] = None
     dt = tradingtimes[0]
     for dtnext in tradingtimes[1:]:
         if verbose > 1:
