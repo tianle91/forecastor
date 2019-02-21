@@ -3,8 +3,6 @@ import json
 import time
 import numpy as np
 import pandas as pd
-import features_trades as fttrades 
-import features_orders as ftorders
 
 
 tstart_string = '10:00'
@@ -28,10 +26,12 @@ def getparams(dt):
         'tend_string': tend_string, 
         'verbose': 1,
     }
-    return paramslist
+    return out
 
-resdtrades = {dt: fttrades.features(**getparams(dt)) for dt in dates}
+exec(open('features_trades.py').read())
+resdtrades = {dt: features(**getparams(dt)) for dt in dates}
 json.dump(resdtrades, gzip.open('SYM:%s_trades.json.gz', 'wb'))
 
-resdorders = {dt: ftorders.features(**getparams(dt)) for dt in dates}
+exec(open('features_orders.py').read())
+resdorders = {dt: features(**getparams(dt)) for dt in dates}
 json.dump(resdtrades, gzip.open('SYM:_%s_orders.json.gz', 'wb'))
