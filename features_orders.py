@@ -73,8 +73,8 @@ def features(symbol, date_string, venue = 'TSX',
     for dt in tradingtimes:
         if verbose > 1:
             t2 = time.time()
-        dftemp = utils.subsetbytime(dfday, dt).toPandas()
-        dftemp = orderbook(dftemp, verbose=verbose-1)
+        dftemp = utils.subsetbytime(dfday, dt)
+        dftemp = orderbook(dftemp, verbose=verbose-1).toPandas()
         bookfeatures[dt] = Book(dftemp, verbose=verbose-1).features()
         if verbose > 1:
             print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
