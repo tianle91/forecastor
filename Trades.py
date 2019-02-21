@@ -9,7 +9,7 @@ def sdweighted(x, weights):
     return np.sqrt(meanofsq - np.power(mean, 2))
 
 
-def features_gpbyprice(df):
+def features_gpbyprice(df, verbose=0):
     '''return features of all trades aggregated by price'''
     ntrades = len(df)
     dfgpbyprx = df.groupby('price').agg({'quantity': 'sum'})
@@ -47,7 +47,7 @@ def filltrfm(aggdf, transfermatrix):
     return m
 
 
-def features_gpbybroker(df, transfermatrix):
+def features_gpbybroker(df, transfermatrix, verbose=0):
     '''return features of all trades aggregated by broker'''
     tradecounts = df.groupby(['buy_broker', 'sell_broker']).agg({'time': 'count'})
     tradevolume = df.groupby(['buy_broker', 'sell_broker']).agg({'quantity': 'sum'})
@@ -60,7 +60,7 @@ def features_gpbybroker(df, transfermatrix):
 
 class Trades(object):
 
-    def __init__(self, df):
+    def __init__(self, df, verbose=0):
         if type(df) is not pd.DataFrame:
             raise TypeError('df is not pd.DataFrame!')
         elif not {'price', 'quantity', 'buy_broker', 'sell_broker'}.issubset(df.columns):
@@ -75,11 +75,12 @@ class Trades(object):
                 'buy_broker': str,
                 'sell_broker': str})
             self.df = df
+            self.verbose = verbose
 
 
     def features(self, transfermatrix):
         '''return dict of features'''
         out = {
-            'gpbyprice': features_gpbyprice(df),
-            'gpbybroker': features_gpbybroker(df, transfermatrix)}
+            'gpbyprice': features_gpbyprice(df, verbose=self.verbose),
+            'gpbybroker': features_gpbybroker(df, transfermatrix, verbose=self.verbose)}
         return out
