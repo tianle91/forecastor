@@ -6,7 +6,7 @@ from Book import Book
 from Orders import Orders
 
 
-def dailyorders(symbol, date_string, venue=):
+def dailyorders(symbol, date_string, venue):
     '''return table of orders'''
     s = '''SELECT
             book_change, 
