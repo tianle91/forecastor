@@ -68,10 +68,15 @@ def features(symbol, date_string, venue = 'TSX',
     # book features
     if verbose > 1:
         t1 = time.time()
+        print ('doing book features')
     bookfeatures = {}
     for dt in tradingtimes:
+        if verbose > 1:
+            t2 = time.time()
         dftemp = utils.subsetbytime(dfday, dt).toPandas()
         bookfeatures[dt] = Book(dftemp, verbose=verbose-1).features()
+        if verbose > 1:
+            print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
     if verbose > 1:
         print ('book features done in: %.2f' % (time.time()-t1))
 
@@ -79,14 +84,19 @@ def features(symbol, date_string, venue = 'TSX',
     # orders features
     if verbose > 1:
         t1 = time.time()
+        print ('doing orders features')
     ordersfeatures = {}
     ordersfeatures[-1] = None
     dt = tradingtimes[0]
     for dtnext in tradingtimes[1:]:
+        if verbose > 1:
+            t2 = time.time()
         dftemp = utils.subsetbytime(dfday, dt, dtnext).toPandas()
         touchval = bookfeatures[dt]['maxbid'], bookfeatures[dt]['minask']
         ordersfeatures[dt] = Orders(dftemp, verbose=verbose-1).features(touchval)
         dt = dtnext
+        if verbose > 1:
+            print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
     if verbose > 1:
         print ('orders features done in: %.2f' % (time.time()-t1))
 
