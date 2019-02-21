@@ -20,7 +20,7 @@ print ('dates:', dates)
 def getparams(dt):
     out = {
         'symbol': symbol,
-        'date_string': str(dt),
+        'date_string': dt.strftime('%Y-%m-%d'),
         'freq': freq, 
         'tstart_string': tstart_string, 
         'tend_string': tend_string, 
