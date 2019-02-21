@@ -2,7 +2,7 @@ import time
 import pandas as pd
 import numpy as np
 import sparkdfutils as utils
-import trades_functions as trxfn
+from Trades import Trades
 
 
 def dailytrades(symbol, date_string):
