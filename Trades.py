@@ -31,7 +31,8 @@ def features_gpbyprice(df, verbose=0):
         tradeq = np.sum(qty)
         qtypertrade = tradeq/ntrades
 
-    out = {'mean': mean, 
+    out = {
+    	'mean': mean, 
         'sd': sd, 
         'Number-of-Trades': ntrades, 
         'Quantity-Traded': tradeq, 
@@ -81,9 +82,8 @@ class Trades(object):
 
     def features(self, transfermatrix):
         '''return dict of features'''
-        out = {
-            'gpbyprice': features_gpbyprice(self.df, verbose=self.verbose),
-            'gpbybroker': features_gpbybroker(self.df, transfermatrix, verbose=self.verbose)}
+        out = {'gpbyprice': features_gpbyprice(self.df, verbose=self.verbose)}
+        #out['gpbybroker'] = features_gpbybroker(self.df, transfermatrix, verbose=self.verbose)
         if self.verbose > 0:
             print (out)
         return out
