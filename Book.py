@@ -72,7 +72,7 @@ class Book(object):
         '''return dict of orderbook features'''
         return {
             'maxbid': self.maxbid,
-            'minask': self.minask
+            'minask': self.minask,
             'spread': self.minask - self.maxbid,
             'prices': self.prices()}
 
