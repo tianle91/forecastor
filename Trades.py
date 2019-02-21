@@ -81,6 +81,6 @@ class Trades(object):
     def features(self, transfermatrix):
         '''return dict of features'''
         out = {
-            'gpbyprice': features_gpbyprice(df, verbose=self.verbose),
-            'gpbybroker': features_gpbybroker(df, transfermatrix, verbose=self.verbose)}
+            'gpbyprice': features_gpbyprice(self.df, verbose=self.verbose),
+            'gpbybroker': features_gpbybroker(self.df, transfermatrix, verbose=self.verbose)}
         return out
