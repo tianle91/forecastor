@@ -42,11 +42,13 @@ def features_gpbyprice(df, verbose=0):
 
 
 def filltrfm(aggdf, transfermatrix):
+	'''return np.array.tolist() of transfer of traded stocks
+	'''
     m = transfermatrix.copy()
     for index, row in aggdf.iterrows():
         buybro, sellbro = index
         m.loc[sellbro, buybro] += float(row[0])
-    return m
+    return m.tolist()
 
 
 def features_gpbybroker(df, transfermatrix, verbose=0):
@@ -83,7 +85,7 @@ class Trades(object):
     def features(self, transfermatrix):
         '''return dict of features'''
         out = {'gpbyprice': features_gpbyprice(self.df, verbose=self.verbose)}
-        #out['gpbybroker'] = features_gpbybroker(self.df, transfermatrix, verbose=self.verbose)
+        out['gpbybroker'] = features_gpbybroker(self.df, transfermatrix, verbose=self.verbose)
         if self.verbose > 0:
             print (out)
         return out
