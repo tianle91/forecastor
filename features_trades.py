@@ -83,6 +83,7 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('all trades features done in: %.2f' % (time.time()-t0))
     
+    dfday.unpersist()
     return tradesfeatures
 
 
