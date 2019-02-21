@@ -81,7 +81,7 @@ class Orders(object):
         out = {}
         for arg in filargs:
         	# collect Count+Volume of df filtered by filargs
-            out[namer(**arg)] = aggtype(self.df, filbool(df, **arg))
+            out[namer(**arg)] = aggtype(self.df, filbool(self.df, **arg))
         if self.verbose > 0:
             print (out)
         return out
