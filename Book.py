@@ -29,7 +29,9 @@ class Book(object):
         else:
             self.df = df.astype({'price': float, 'quantity': float})
 
-        self.maxbid, self.minask = touch(self.df)
+        if len(self.df) > 0:
+            self.maxbid, self.minask = touch(self.df)
+
         self.verbose = verbose
 
 
@@ -70,11 +72,13 @@ class Book(object):
 
     def features(self):
         '''return dict of orderbook features'''
-        out = {
-            'maxbid': self.maxbid,
-            'minask': self.minask,
-            'spread': self.minask - self.maxbid,
-            'prices': self.prices()}
+        out = None
+        if len(self.df) > 0:
+            out = {
+                'maxbid': self.maxbid,
+                'minask': self.minask,
+                'spread': self.minask - self.maxbid,
+                'prices': self.prices()}
         if self.verbose > 0:
             print (out)
         return out
