@@ -59,6 +59,8 @@ class Orders(object):
     def __init__(self, df, verbose=0):
         if type(df) is not pd.DataFrame:
             raise TypeError('df is not pd.DataFrame!')
+        elif not {'price', 'book_change'}.issubset(df.columns):
+            raise ValueError('df does not have price, book_change columns!')
         else:
             self.df = df.astype({'price': float, 'book_change': float})
         self.verbose = verbose
@@ -80,4 +82,6 @@ class Orders(object):
         for arg in filargs:
         	# collect Count+Volume of df filtered by filargs
             out[namer(**arg)] = aggtype(self.df, filbool(df, **arg))
+        if self.verbose > 0:
+            print (out)
         return out

@@ -70,11 +70,14 @@ class Book(object):
 
     def features(self):
         '''return dict of orderbook features'''
-        return {
+        out = {
             'maxbid': self.maxbid,
             'minask': self.minask,
             'spread': self.minask - self.maxbid,
             'prices': self.prices()}
+        if self.verbose > 0:
+            print (out)
+        return out
 
 
     def depthview(self, viewpct=.8, plot=True):

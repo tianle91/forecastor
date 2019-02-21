@@ -84,4 +84,6 @@ class Trades(object):
         out = {
             'gpbyprice': features_gpbyprice(self.df, verbose=self.verbose),
             'gpbybroker': features_gpbybroker(self.df, transfermatrix, verbose=self.verbose)}
+        if self.verbose > 0:
+            print (out)
         return out

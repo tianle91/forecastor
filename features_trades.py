@@ -73,7 +73,7 @@ def features(symbol, date_string, venue = 'TSX',
         if verbose > 1:
             t2 = time.time()
         dftemp = utils.subsetbytime(dfday, dt, dtnext).toPandas()
-        tradesfeatures[dt] = Trades(dftemp, verbose=verbose-1).features(brotrfm)
+        tradesfeatures[dt] = Trades(dftemp, verbose=verbose-2).features(brotrfm)
         if verbose > 1:
             print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
         dt = dtnext
