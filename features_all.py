@@ -15,7 +15,7 @@ symbol = 'TD'
 
 dates = pd.date_range(
     start = pd.to_datetime('2018-04-01'),
-    end = pd.to_datetime('2018-06-01') if jobname == 'short' else pd.to_datetime('2018-04-03'),
+    end = pd.to_datetime('2018-04-03') if jobname == 'short' else pd.to_datetime('2018-06-01'),
     freq = 'B')
 print ('dates:', dates)
 
