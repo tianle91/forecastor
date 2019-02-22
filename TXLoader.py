@@ -22,13 +22,8 @@ def flattendic_trades(d):
 class TXLoader(object):
 
     def __init__(self, jobname, symbol):
-
-        self.orders = pickle.load(
-            gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'rb')
-            )
-        self.trades = pickle.load(
-            gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb')
-            )
+        self.orders = pickle.load(gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'rb'))
+        self.trades = pickle.load(gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb'))
 
 
     def getxm(self):
@@ -40,7 +35,7 @@ class TXLoader(object):
         resdtrades = {k2: self.trades[k1][k2] 
             for k1 in self.trades 
             for k2 in self.trades[k1]}
-            
+
         #get all ordered time indices 
         alltimes = list(resdorders.keys())
         alltimes.sort()
