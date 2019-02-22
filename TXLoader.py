@@ -26,23 +26,34 @@ class TXLoader(object):
         self.trades = pickle.load(gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb'))
 
 
-    def getxm(self):
-
-        #flatten resd into single time index
-        resdorders = {k2: self.orders[k1][k2] 
-            for k1 in self.orders 
-            for k2 in self.orders[k1]}
-        resdtrades = {k2: self.trades[k1][k2] 
-            for k1 in self.trades 
-            for k2 in self.trades[k1]}
-
-        #get all ordered time indices 
-        alltimes = list(resdorders.keys())
-        alltimes.sort()
+    def getxm(self, byday=False):
 
         def tonumpy(flatords, flattrades):
             if flatords is not None and flattrades is not None:
                 return flatords + flattrades
 
-        resl = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
-        return np.array([l for l in resl if l is not None])
+        if not byday:
+            #flatten resd into flat time index for just minute-level
+            resdorders = {k2: self.orders[k1][k2] 
+                for k1 in self.orders 
+                for k2 in self.orders[k1]}
+            resdtrades = {k2: self.trades[k1][k2] 
+                for k1 in self.trades 
+                for k2 in self.trades[k1]}
+
+            #get all ordered time indices 
+            alltimes = list(resdorders.keys())
+            alltimes.sort()
+
+            resl = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+            return np.array([l for l in resl if l is not None])
+        else:
+            alldays = list(self.orders.keys())
+            alldays.sort()
+
+            def worker(resdordersday, resdtradesday):
+                alltimes = list(resdordersday.keys())
+                resl = [tonumpy(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+                return [l for l in resl if l is not None]
+
+            return [worker(resdorders[dt], resdtrades[dt]) for dt in alldays]
