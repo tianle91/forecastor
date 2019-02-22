@@ -23,22 +23,31 @@ class TXLoader(object):
 
     def __init__(self, jobname, symbol):
 
-        resdorders = pickle.load(gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'rb'))
-        resdtrades = pickle.load(gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb'))
-        #flatten resd into single time index
-        self.resdorders = {k2: resdorders[k1][k2] for k1 in resdorders for k2 in resdorders[k1]}
-        self.resdtrades = {k2: resdtrades[k1][k2] for k1 in resdtrades for k2 in resdtrades[k1]}
-        #get all ordered time indices 
-        self.alltimes = list(resdorders.keys())
-        self.alltimes.sort()
+        self.orders = pickle.load(
+            gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'rb')
+            )
+        self.trades = pickle.load(
+            gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb')
+            )
 
 
     def getxm(self):
+
+        #flatten resd into single time index
+        resdorders = {k2: self.orders[k1][k2] 
+            for k1 in self.orders 
+            for k2 in self.orders[k1]}
+        resdtrades = {k2: self.trades[k1][k2] 
+            for k1 in self.trades 
+            for k2 in self.trades[k1]}
+            
+        #get all ordered time indices 
+        alltimes = list(resdorders.keys())
+        alltimes.sort()
 
         def tonumpy(flatords, flattrades):
             if flatords is not None and flattrades is not None:
                 return flatords + flattrades
 
-        covariates = [tonumpy(flattendic_orders(self.resdorders[dt]), flattendic_trades(self.resdtrades[dt])) for dt in self.alltimes]
-        covariates = [l for l in covariates if l is not None]
-        return np.array(covariates)
+        resl = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+        return np.array([l for l in resl if l is not None])
