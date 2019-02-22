@@ -20,7 +20,9 @@ def flattendic_trades(d):
 
 
 class TXLoader(object):
-    def __init__(self, jobname = 'short', symbol = 'TD'):
+
+    def __init__(self, jobname, symbol):
+
         resdorders = pickle.load(gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'rb'))
         resdtrades = pickle.load(gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb'))
         #flatten resd into single time index
@@ -30,10 +32,12 @@ class TXLoader(object):
         self.alltimes = list(resdorders.keys())
         self.alltimes.sort()
 
+
     def getxm(self):
+        
         def tonumpy(flatords, flattrades):
-        if flatords is not None and flattrades is not None:
-            return flatords + flattrades
+            if flatords is not None and flattrades is not None:
+                return flatords + flattrades
 
         covariates = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
         covariates = [l for l in covariates if l is not None]
