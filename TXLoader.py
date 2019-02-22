@@ -56,4 +56,4 @@ class TXLoader(object):
                 resl = [toflatlist(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtradesday[dt])) for dt in alltimes]
                 return [l for l in resl if l is not None]
 
-            return [worker(self.orders[dt], self.trades[dt]) for dt in alldays]
+            return np.array([worker(self.orders[dt], self.trades[dt]) for dt in alldays])
