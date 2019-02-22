@@ -53,7 +53,7 @@ class TXLoader(object):
 
             def worker(resdordersday, resdtradesday):
                 alltimes = list(resdordersday.keys())
-                resl = [tonumpy(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+                resl = [tonumpy(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtradesday[dt])) for dt in alltimes]
                 return [l for l in resl if l is not None]
 
             return [worker(resdorders[dt], resdtrades[dt]) for dt in alldays]
