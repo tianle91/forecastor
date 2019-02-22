@@ -48,7 +48,7 @@ def filltrfm(aggdf, transfermatrix):
     for index, row in aggdf.iterrows():
         buybro, sellbro = index
         m.loc[sellbro, buybro] += float(row[0])
-    return m.tolist()
+    return m
 
 
 def features_gpbybroker(df, transfermatrix, verbose=0):
