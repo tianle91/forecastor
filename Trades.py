@@ -32,7 +32,7 @@ def features_gpbyprice(df, verbose=0):
         qtypertrade = tradeq/ntrades
 
     out = {
-    	'mean': mean, 
+        'mean': mean, 
         'sd': sd, 
         'Number-of-Trades': ntrades, 
         'Quantity-Traded': tradeq, 
@@ -42,8 +42,8 @@ def features_gpbyprice(df, verbose=0):
 
 
 def filltrfm(aggdf, transfermatrix):
-	'''return np.array.tolist() of transfer of traded stocks
-	'''
+    '''return np.array.tolist() of transfer of traded stocks
+    '''
     m = transfermatrix.copy()
     for index, row in aggdf.iterrows():
         buybro, sellbro = index
