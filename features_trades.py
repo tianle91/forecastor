@@ -67,7 +67,7 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 1:
         t1 = time.time()
     tradesfeatures = {}
-    tradesfeatures[-1] = None
+    tradesfeatures[tradingtimes[-1]] = None
     dt = tradingtimes[0]
     for dtnext in tradingtimes[1:]:
         if verbose > 1:
