@@ -28,7 +28,7 @@ class TXLoader(object):
 
     def getxm(self, byday=False):
 
-        def tonumpy(flatords, flattrades):
+        def toflatlist(flatords, flattrades):
             if flatords is not None and flattrades is not None:
                 return flatords + flattrades
 
@@ -45,7 +45,7 @@ class TXLoader(object):
             alltimes = list(resdorders.keys())
             alltimes.sort()
 
-            resl = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+            resl = [toflatlist(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
             return np.array([l for l in resl if l is not None])
         else:
             alldays = list(self.orders.keys())
@@ -53,7 +53,7 @@ class TXLoader(object):
 
             def worker(resdordersday, resdtradesday):
                 alltimes = list(resdordersday.keys())
-                resl = [tonumpy(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtradesday[dt])) for dt in alltimes]
+                resl = [toflatlist(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtradesday[dt])) for dt in alltimes]
                 return [l for l in resl if l is not None]
 
             return [worker(self.orders[dt], self.trades[dt]) for dt in alldays]
