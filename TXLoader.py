@@ -34,11 +34,11 @@ class TXLoader(object):
 
 
     def getxm(self):
-        
+
         def tonumpy(flatords, flattrades):
             if flatords is not None and flattrades is not None:
                 return flatords + flattrades
 
-        covariates = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+        covariates = [tonumpy(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in self.alltimes]
         covariates = [l for l in covariates if l is not None]
         return np.array(covariates)
