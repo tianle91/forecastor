@@ -15,8 +15,7 @@ def utctimestamp_to_tz(dt, tz='US/Eastern'):
         dt = dt.tz_localize('UTC')
     elif dt.tzinfo != 'UTC':
         raise ValueError('dt is set to: %s, but is not UTC!' % (dt.tzinfo))
-    else:
-        return dt.tz_convert(tz)
+    return dt.tz_convert(tz)
 
 
 def subsetbytime(df, timestamp0, timestamp1=None, verbose=0):
