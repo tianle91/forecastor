@@ -57,11 +57,14 @@ def features(symbol, date_string, venue = 'TSX',
 
     dfday = dailytrades(symbol, date_string)
     dfday.cache()
+    ntrades = dfday.count()
 
     if verbose > 0:
-        print ('cached trades for %s done in: %.2f norders: %d' %\
-            (date_string, time.time()-t0, dfday.count()))
+        print ('cached trades for %s done in: %.2f ntrades: %d' %\
+            (date_string, time.time()-t0, ntrades))
 
+    if ntrades == 0:
+        return None
 
     # orders features
     if verbose > 1:

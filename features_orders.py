@@ -59,11 +59,14 @@ def features(symbol, date_string, venue = 'TSX',
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue)
     dfday.cache()
+    norders = dfday.count()
 
     if verbose > 0:
         print ('cached orders for %s done in: %.2f norders: %d' %\
-            (date_string, time.time()-t0, dfday.count()))
+            (date_string, time.time()-t0, norders))
 
+    if norders == 0:
+    	return None
 
     # book features
     if verbose > 1:
