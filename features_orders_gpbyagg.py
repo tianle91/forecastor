@@ -2,7 +2,7 @@ import time
 import pandas as pd
 import numpy as np
 import sparkdfutils as utils
-from pyspark.sql.functions import date_trunc
+from Book import Book
 
 
 def dailyorders(symbol, date_string, venue, tsunit):
@@ -37,19 +37,6 @@ def orderbook(ordersdf, verbose=0):
     if verbose > 0:
         print ('len:', bk.count())
     return bk
-
-
-def gettouch(bkdf):
-    '''return maxask, minbid for orderbook'''
-    minask = bkdf.filter('''side == 'Sell' ''').agg({'price': 'min'})
-    minask = minask.collect()[0]['min(price)']
-    maxbid = bkdf.filter('''side == 'Buy' ''').agg({'price': 'max'})
-    maxbid = maxbid.collect()[0]['max(price)']
-    return float(maxbid), float(minask)
-
-
-def getbookfeatures(dfday, verbose=0):
-	pass
 
 
 def getordersfilstr(ordtype=None, side=None, touch=None):
@@ -104,17 +91,19 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
-    if verbose > 0:
-        t0 = time.time()
-
     freq = None
     if tsunit == 'MINUTE':
         freq = '1min'
     else:
         raise ValueError('freq not done for tsunit:'+tsunit)
 
+    # key for output dictionary
     # trading times is in US/Eastern
     tradingtimes = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
+
+    # get all orders in day
+    if verbose > 0:
+        t0 = time.time()
 
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue, tsunit)
@@ -125,23 +114,31 @@ def features(symbol, date_string, venue = 'TSX',
         print ('cached orders for %s done in: %.2f norders: %d' %\
             (date_string, time.time()-t0, dfday.count()))
 
-    # utc stuff is from dfday
+    # utc stuff is from dfday where there are observations
     tradingtimesutc = dfday.select('timed').distinct().toPandas()
     tradingtimesutc = [val for index, val in tradingtimesutc['timed'].iteritems()]
     if verbose > 1:
         print ('trading times in dfday in US/Eastern:')
         print ([utils.utctimestamp_to_tz(dtutc, 'US/Eastern') for dtutc in tradingtimesutc])
 
-    # orders features
+
+    # book features
     if verbose > 1:
         t1 = time.time()
         print ('doing book features')
 
     bookfeatures = {}
     for dtutc in tradingtimesutc:
+        if verbose > 2:
+            t2 = time.time()
         bookdf = orderbook(dfday.filter('''time < %s''' % (dtutc)), verbose=verbose-2).toPandas()
-        bookfeatures[utils.utctimestamp_to_tz(dtutc, 'US/Eastern')] = Book(bookdf, verbose=verbose-2).features()
+        dt = utils.utctimestamp_to_tz(dtutc, 'US/Eastern')
+        bookfeatures[dt] = Book(bookdf, verbose=verbose-2).features()
+        if verbose > 2:
+            print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
 
+    if verbose > 1:
+        print ('book features done in: %.2f' % (time.time()-t1))
 
 
 
