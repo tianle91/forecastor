@@ -3,9 +3,20 @@ import pandas as pd
 
 
 def utctimestamp(dt):
+    if dt.tzinfo is None:
+        raise ValueError('no timezone set for dt!')
     s = dt.tz_convert('UTC')
     s = s.strftime('%Y-%m-%d %H:%M:%S')
     return s
+
+
+def utctimestamp_to_tz(dt, tz='US/Eastern'):
+    if dt.tzinfo is None:
+        dt = dt.tz_localize('UTC')
+    elif dt.tzinfo != 'UTC':
+        raise ValueError('dt is set to: %s, but is not UTC!' % (dt.tzinfo))
+    else:
+        return dt.tz_convert(tz)
 
 
 def subsetbytime(df, timestamp0, timestamp1=None, verbose=0):
