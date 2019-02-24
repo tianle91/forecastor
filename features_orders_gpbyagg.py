@@ -102,7 +102,7 @@ def features(symbol, date_string, venue = 'TSX',
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue, tsunit)
     dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    #dfday.cache()
+    dfday.cache()
 
     if verbose > 0:
         print ('cached orders for %s done in: %.2f norders: %d' %\
@@ -166,7 +166,10 @@ def features(symbol, date_string, venue = 'TSX',
         schema)
 
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
+    
+    dfday.unpersist()
     dfday = dfday.join(touchdf, "timed")
+    dfday.cache()
 
 
     # --------------------------------------------------------------------------
@@ -251,7 +254,7 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('all done in: %.2f' % (time.time()-t0))
 
-    #dfday.unpersist()
+    dfday.unpersist()
     return out
 
 
