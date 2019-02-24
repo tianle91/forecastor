@@ -205,7 +205,7 @@ def features(symbol, date_string, venue = 'TSX',
                 print (dftemp.head(5))
         return k, dftemp
 
-    params_notouch = [
+    params = [
         {'colname': colname, 
             'aggfn': aggfn, 
             'ordtype': ordtype, 
@@ -219,12 +219,13 @@ def features(symbol, date_string, venue = 'TSX',
         for touch in [False, True]
     ]
 
-    resl = map(lambda x: worker(**x), params_notouch)
+    resl = map(lambda x: worker(**x), params)
     orderfeaturesbycovname = {k: v for k, v in resl}
 
     if verbose > 1:
         print ('orders features done in: %.2f' % (time.time()-t1))
         print ('number of covariates for new orders:', len(list(orderfeaturesbycovname.keys())))
+
 
     # change to dt key    
     dummydict = {}
