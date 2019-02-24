@@ -115,13 +115,13 @@ def features(symbol, date_string, venue = 'TSX',
     tradingtimesdf.sort()
 
     if verbose > 1:
-        print ('trading times in dfday in US/Eastern:\n', tradingtimesdf)
+        print ('len(tradingtimesdf): %s\ntrading times in dfday in US/Eastern:\n%s' % (len(tradingtimesdf), tradingtimesdf))
 
 
     # --------------------------------------------------------------------------
     # book features
     # --------------------------------------------------------------------------
-    if verbose > 1:
+    if verbose > 0:
         t1 = time.time()
         print ('doing book features')
 
@@ -130,20 +130,20 @@ def features(symbol, date_string, venue = 'TSX',
     def worker(dt, verbose):
         if verbose > 0:
             t2 = time.time()
-        dftemp = orderbook(utils.subsetbytime(dfday, dt), verbose=verbose)
-        out = Book(dftemp.toPandas(), verbose=verbose).features()
+        dftemp = dfday.filter('''timed < '%s' ''' % (utils.utctimestamp(dt)))
+        dfbook = orderbook(dftemp, verbose=verbose)
+        out = Book(dfbook.toPandas(), verbose=verbose).features()
         if verbose > 0:
             print ('doing book features for dt: %s done in: %.2f' % (dt, time.time()-t2))
+            # 5s per run
         return out
 
-    bookfeatures[tradingtimes[0]] = worker(tradingtimes[0], verbose-1)
-    touchtimed = {}
+    bookfeatures = {}
     for dt in tradingtimesdf:
         fttemp = worker(dt, verbose-1)
         bookfeatures[dt] = fttemp 
-        touchtimed[utctimestamp(dt)] = (fttemp['maxbid'], fttemp['minask'])
 
-    if verbose > 1:
+    if verbose > 0:
         print ('done in: %.2f' % (time.time()-t1))
 
 
@@ -152,15 +152,20 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
 
     schema = StructType([
-        StructField("timed", TimestampType()),
-        StructField("maxbid", DecimalType()),
-        StructField("minask", DecimalType())])
+        StructField("timedstr", StringType()),
+        StructField("maxbid", DoubleType()),
+        StructField("minask", DoubleType())])
 
     touchdf = spark.createDataFrame(
-        [(dt, touchtimed[dt]['maxbid'], touchtimed[dt]['minask'])
-            for dt in touchtimed],
+        [(utils.utctimestamp(dt), bookfeatures[dt]['maxbid'], bookfeatures[dt]['minask']) 
+            for dt in bookfeatures],
         schema)
 
+    touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
+    dfday = dfday.join(touchdf, "timed")
+
+    if verbose > 0:
+        print ('joined with touch dfday.show():\n', dfday.show())
 
 
     # --------------------------------------------------------------------------
@@ -208,19 +213,15 @@ def features(symbol, date_string, venue = 'TSX',
         for colname, aggfn in [('*', 'count'), ('book_change', 'sum')]
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
-        #for touch in [False, True]
-        for touch in [False]
+        for touch in [False, True]
     ]
 
     resl = map(lambda x: worker(**x), params_notouch)
-    orderfeatures = {}
-    for covname, dftemp in resl:
-        for index, row in dftemp.iterrows():
-            dt = utctimestamp_to_tz(row['timed'], tz='US/Eastern')
-            val = row.
+    #orderfeatures = {k: v for k, v in resl}
+
 
     if verbose > 1:
-        print ('orders features no touch done in: %.2f' % (time.time()-t1))
+        print ('orders features done in: %.2f' % (time.time()-t1))
 
     
     dfday.unpersist()
