@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import sparkdfutils as utils
 from Book import Book
+from pyspark.sql.types import *
 
 
 def dailyorders(symbol, date_string, venue, tsunit):
@@ -39,12 +40,12 @@ def orderbook(ordersdf, verbose=0):
     return bk
 
 
-def getordersfilstr(ordtype=None, side=None, touch=None):
+def getordersfilstr(ordtype=None, side=None, touch=False):
     '''string for ordersdf.filter(string)
     Args:
-        ordertype: one of [None, 'New', 'Cancelled', 'Executed']
+        ordtype: one of [None, 'New', 'Cancelled', 'Executed']
         side: one of [None, 'Buy', 'Sell']
-        touch: one of [None, (maxbid, minask)]
+        touch: bool
     '''
     s = ''
 
@@ -55,11 +56,10 @@ def getordersfilstr(ordtype=None, side=None, touch=None):
     elif ordtype == 'Executed':
         s += '''(reason = 'Filled' OR reason = 'Partial Fill')'''
     
-    if touch is not None:
-        maxbid, minask = touch
+    if touch:
         if s != '':
             s += ' AND '
-        s += '(price BETWEEN %s AND %s)' % (maxbid, minask)
+        s += '''((price >= maxbid AND side == 'Buy') OR (price <= minask AND side == 'Sell'))'''
 
     if side in ['Buy', 'Sell']:
         if s != '':
@@ -137,15 +137,34 @@ def features(symbol, date_string, venue = 'TSX',
         return out
 
     bookfeatures[tradingtimes[0]] = worker(tradingtimes[0], verbose-1)
+    touchtimed = {}
     for dt in tradingtimesdf:
-        bookfeatures[dt] = worker(dt, verbose-1)
+        fttemp = worker(dt, verbose-1)
+        bookfeatures[dt] = fttemp 
+        touchtimed[utctimestamp(dt)] = (fttemp['maxbid'], fttemp['minask'])
 
     if verbose > 1:
         print ('done in: %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
-    # orders features no touch
+    # create touch dataframe
+    # --------------------------------------------------------------------------
+
+    schema = StructType([
+        StructField("timed", TimestampType()),
+        StructField("maxbid", DecimalType()),
+        StructField("minask", DecimalType())])
+
+    touchdf = spark.createDataFrame(
+        [(dt, touchtimed[dt]['maxbid'], touchtimed[dt]['minask'])
+            for dt in touchtimed],
+        schema)
+
+
+
+    # --------------------------------------------------------------------------
+    # orders features
     # --------------------------------------------------------------------------
     if verbose > 1:
         t1 = time.time()
@@ -183,12 +202,14 @@ def features(symbol, date_string, venue = 'TSX',
             'aggfn': aggfn, 
             'ordtype': ordtype, 
             'side': side, 
-            'touch': None,
+            'touch': touch,
             'verbose': verbose-1
         }
         for colname, aggfn in [('*', 'count'), ('book_change', 'sum')]
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
+        #for touch in [False, True]
+        for touch in [False]
     ]
 
     resl = map(lambda x: worker(**x), params_notouch)
