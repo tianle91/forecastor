@@ -220,7 +220,7 @@ def features(symbol, date_string, venue = 'TSX',
     resl = map(lambda x: worker(**x), params)
     orderfeaturesbycovname = {k: v for k, v in resl}
 
-    if verbose > 1:
+    if verbose > 0:
         print ('orders features done in: %.2f' % (time.time()-t1))
         print ('number of covariates for new orders:', len(list(orderfeaturesbycovname.keys())))
 
@@ -247,7 +247,10 @@ def features(symbol, date_string, venue = 'TSX',
     for dt in tradingtimesdf:
         out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
 
-	dfday.unpersist()
+    if verbose > 0:
+        print ('all done in: %.2f' % (time.time()-t0))
+
+    dfday.unpersist()
     return out
 
 
