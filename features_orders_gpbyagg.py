@@ -46,31 +46,25 @@ def getordersfilstr(ordtype=None, side=None, touch=None):
         side: one of [None, 'Buy', 'Sell']
         touch: one of [None, (maxbid, minask)]
     '''
-    s = None
+    s = ''
 
-    if ordtype is None:
-        pass
+    if ordtype == 'Cancelled':
+        s += '''reason = 'Cancelled' '''
     elif ordtype == 'New':
-        s = 'book_change > 0'
-    elif ordtype == 'Cancelled':
-        s = '''reason = 'Cancelled' '''
+        s += '''(reason = 'New Order' OR reason = 'Changed')'''
     elif ordtype == 'Executed':
-        s = '''(reason = 'Filled' OR reason = 'Partial Fill')'''
+        s += '''(reason = 'Filled' OR reason = 'Partial Fill')'''
     
     if touch is not None:
         maxbid, minask = touch
-        if s is not None:
+        if s != '':
             s += ' AND '
-        else: 
-            s = ''
-        s += 'price BETWEEN %s AND %s' % (maxbid, minask)
+        s += '(price BETWEEN %s AND %s)' % (maxbid, minask)
 
     if side in ['Buy', 'Sell']:
-        if s is not None:
+        if s != '':
             s += ' AND '
-        else:
-            s = ''
-        s += '''side == '%s' ''' % (side)
+        s += '''(side == '%s')''' % (side)
     
     return s
 
@@ -125,49 +119,87 @@ def features(symbol, date_string, venue = 'TSX',
 
 
     # --------------------------------------------------------------------------
-    # book features for initial
+    # book features
     # --------------------------------------------------------------------------
     if verbose > 1:
         t1 = time.time()
-        print ('doing book features for tradingtimes[0]: %s' % (tradingtimes[0]))
+        print ('doing book features')
 
-    dt0 = tradingtimes[0]
-    bookdf = orderbook(utils.subsetbytime(dfday, dt0), verbose=verbose-2)
-    bookfeatures[dt0] = Book(bookdf.toPandas(), verbose=verbose-2).features()
+    bookfeatures = {}
+    
+    def worker(dt, verbose):
+        if verbose > 0:
+            t2 = time.time()
+        dftemp = orderbook(utils.subsetbytime(dfday, dt), verbose=verbose)
+        out = Book(dftemp.toPandas(), verbose=verbose).features()
+        if verbose > 0:
+            print ('doing book features for dt: %s done in: %.2f' % (dt, time.time()-t2))
+        return out
+
+    bookfeatures[tradingtimes[0]] = worker(tradingtimes[0], verbose-1)
+    for dt in tradingtimesdf:
+        bookfeatures[dt] = worker(dt, verbose-1)
 
     if verbose > 1:
         print ('done in: %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
-    # orders features
+    # orders features no touch
     # --------------------------------------------------------------------------
     if verbose > 1:
         t1 = time.time()
-        print ('doing orders features')
+        print ('doing orders features no touch')
 
-    def worker(colname, aggfn, ordtype, side, touch, verbose=verbose-1):
-        k = '%s(%s)_for_%s_%s_orders' % (aggfn, colname, ordtype if ordtype is not None else 'All', side if side is not None else 'All')
+    def covnamer(colname, aggfn, ordtype, side, touch):
+        k = '%s(%s)_for_type:%s_side:%s_orders' %\
+            (aggfn, colname, 
+                ordtype if ordtype is not None else 'All', 
+                side if side is not None else 'All')
         k += '_at_touch' if touch is not None else ''
+        return k
+
+    def worker(colname, aggfn, ordtype, side, touch, verbose):
         filstr = getordersfilstr(ordtype, side, touch)
+        k = covnamer(colname, aggfn, ordtype, side, touch)
         if verbose > 0:
             t2 = time.time()
             print ('k:%s\nfilstr:%s' % (k, filstr))
-        v = utils.get_fil_agg(dfday, colname, aggfn, filstr=filstr)
-        if verbose > 0:
-            print ('done in: %.2f' % (time.time()-t0))
-            if verbose > 1:
-                print (v)
-        return k, v
 
-    ftorders = [worker(colname, aggfn, ordtype, side, touch)
+        dftemp = dfday
+        if filstr != '':
+            dftemp = dftemp.filter(filstr)
+        dftemp = dftemp.groupBy('timed').agg({colname: aggfn})
+        dftemp = dftemp.toPandas()
+
+        if verbose > 0:
+            print ('done in: %.2f' % (time.time()-t2))
+            if verbose > 1:
+                print (dftemp.head(5))
+        return k, dftemp
+
+    params_notouch = [
+        {'colname': colname, 
+            'aggfn': aggfn, 
+            'ordtype': ordtype, 
+            'side': side, 
+            'touch': None,
+            'verbose': verbose-1
+        }
         for colname, aggfn in [('*', 'count'), ('book_change', 'sum')]
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
-        for touch in [None]]
+    ]
+
+    resl = map(lambda x: worker(**x), params_notouch)
+    orderfeatures = {}
+    for covname, dftemp in resl:
+        for index, row in dftemp.iterrows():
+            dt = utctimestamp_to_tz(row['timed'], tz='US/Eastern')
+            val = row.
 
     if verbose > 1:
-        print ('orders features done in: %.2f' % (time.time()-t1))
+        print ('orders features no touch done in: %.2f' % (time.time()-t1))
 
     
     dfday.unpersist()
