@@ -135,7 +135,10 @@ def features(symbol, date_string, venue = 'TSX',
             dt, value = row[0], row[1]
             dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
             if dt in tradesfeatures:
-                tradesfeatures[dt][covname] = float(value)
+                try:
+                    tradesfeatures[dt][covname] = float(value)
+                except:
+                    print ('value: %s not converted!' % (value))
 
     
     if verbose > 0:

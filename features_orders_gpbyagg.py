@@ -240,8 +240,11 @@ def features(symbol, date_string, venue = 'TSX',
             dt, value = row[0], row[1]
             dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
             if dt in ordersfeatures:
-                ordersfeatures[dt][covname] = float(value)
-
+                try:
+                    ordersfeatures[dt][covname] = float(value)
+                except:
+                    print ('value: %s not converted!' % (value))
+                
 
     # --------------------------------------------------------------------------
     # collect and return
