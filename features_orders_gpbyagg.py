@@ -240,7 +240,7 @@ def features(symbol, date_string, venue = 'TSX',
             dt, value = row[0], row[1]
             dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
             if dt in ordersfeatures:
-                ordersfeatures[dt][covname] = value
+                ordersfeatures[dt][covname] = float(value)
 
 
     # --------------------------------------------------------------------------

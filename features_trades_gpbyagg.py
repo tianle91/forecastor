@@ -102,8 +102,10 @@ def features(symbol, date_string, venue = 'TSX',
         {'colname': colname, 'aggfn': aggfn, 'verbose': verbose-1}
         for colname, aggfn in [
            ('*', 'count'), 
-           ('quantity', 'sum'), 
+           ('quantity', 'mean'), 
+           ('quantity', 'stddev'),
            ('price', 'mean'), 
+           ('price', 'stddev'), 
            ('price', 'min'), 
            ('price', 'max')]
     ]
@@ -132,7 +134,7 @@ def features(symbol, date_string, venue = 'TSX',
             dt, value = row[0], row[1]
             dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
             if dt in tradesfeatures:
-                tradesfeatures[dt][covname] = value
+                tradesfeatures[dt][covname] = float(value)
 
     return tradesfeatures
 
