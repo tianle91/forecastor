@@ -168,9 +168,6 @@ def features(symbol, date_string, venue = 'TSX',
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
     dfday = dfday.join(touchdf, "timed")
 
-    if verbose > 2:
-        print ('joined with touch dfday.show():\n', dfday.show())
-
 
     # --------------------------------------------------------------------------
     # orders features
