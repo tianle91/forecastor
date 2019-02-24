@@ -41,10 +41,10 @@ def orderbook(ordersdf, verbose=0):
 
 def getordersfilstr(ordtype=None, side=None, touch=None):
     '''string for ordersdf.filter(string)
-	Args:
-		ordertype: one of [None, 'New', 'Cancelled', 'Executed']
-		side: one of [None, 'Buy', 'Sell']
-		touch: one of [None, (maxbid, minask)]
+    Args:
+        ordertype: one of [None, 'New', 'Cancelled', 'Executed']
+        side: one of [None, 'Buy', 'Sell']
+        touch: one of [None, (maxbid, minask)]
     '''
     s = None
 
@@ -60,17 +60,17 @@ def getordersfilstr(ordtype=None, side=None, touch=None):
     if touch is not None:
         maxbid, minask = touch
         if s is not None:
-        	s += ' AND '
+            s += ' AND '
         else: 
-        	s = ''
+            s = ''
         s += 'price BETWEEN %s AND %s' % (maxbid, minask)
 
     if side in ['Buy', 'Sell']:
-    	if s is not None:
-    		s += ' AND '
-    	else:
-    		s = ''
-    	s += '''side == '%s' ''' % (side)
+        if s is not None:
+            s += ' AND '
+        else:
+            s = ''
+        s += '''side == '%s' ''' % (side)
     
     return s
 
@@ -91,17 +91,16 @@ def features(symbol, date_string, venue = 'TSX',
         tstart_string: str of 'HH:MM' for start time
         tend_string: str of 'HH:MM' for end time
     '''
-    freq = None
-    if tsunit == 'MINUTE':
-        freq = '1min'
-    else:
-        raise ValueError('freq not done for tsunit:'+tsunit)
 
-    # key for output dictionary
-    # trading times is in US/Eastern
+    # set up key for output dictionary, trading times is in US/Eastern
+    freq = '1H' if tsunit == 'HOUR' else '1min' if tsunit == 'MINUTE' else '1S' if tsunit == 'SECOND' else None
     tradingtimes = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
+    tradingtimes.sort()
 
+    
+    # --------------------------------------------------------------------------
     # get all orders in day
+    # --------------------------------------------------------------------------
     if verbose > 0:
         t0 = time.time()
 
@@ -115,67 +114,57 @@ def features(symbol, date_string, venue = 'TSX',
             (date_string, time.time()-t0, dfday.count()))
 
     # utc stuff is from dfday where there are observations
-    tradingtimesutc = dfday.select('timed').distinct().toPandas()
-    tradingtimesutc = [val for index, val in tradingtimesutc['timed'].iteritems()]
+    tradingtimesdf = dfday.select('timed').distinct().toPandas()
+    tradingtimesdf = [val for index, val in tradingtimesdf['timed'].iteritems()]
+    tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
+    tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
+    tradingtimesdf.sort()
+
     if verbose > 1:
-        print ('trading times in dfday in US/Eastern:')
-        print ([utils.utctimestamp_to_tz(dtutc, 'US/Eastern') for dtutc in tradingtimesutc])
+        print ('trading times in dfday in US/Eastern:\n', tradingtimesdf)
 
 
-    # book features
+    # --------------------------------------------------------------------------
+    # book features for initial
+    # --------------------------------------------------------------------------
     if verbose > 1:
         t1 = time.time()
-        print ('doing book features')
+        print ('doing book features for tradingtimes[0]: %s' % (tradingtimes[0]))
 
-    bookfeatures = {}
-    for dtutc in tradingtimesutc:
-        if verbose > 2:
-            t2 = time.time()
-        bookdf = orderbook(dfday.filter('''time < %s''' % (dtutc)), verbose=verbose-2).toPandas()
-        dt = utils.utctimestamp_to_tz(dtutc, 'US/Eastern')
-        bookfeatures[dt] = Book(bookdf, verbose=verbose-2).features()
-        if verbose > 2:
-            print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
+    dt0 = tradingtimes[0]
+    bookdf = orderbook(utils.subsetbytime(dfday, dt0), verbose=verbose-2)
+    bookfeatures[dt0] = Book(bookdf.toPandas(), verbose=verbose-2).features()
 
     if verbose > 1:
-        print ('book features done in: %.2f' % (time.time()-t1))
+        print ('done in: %.2f' % (time.time()-t1))
 
 
-
-
-
-
-
-
-
-
-
-
+    # --------------------------------------------------------------------------
     # orders features
+    # --------------------------------------------------------------------------
     if verbose > 1:
         t1 = time.time()
         print ('doing orders features')
 
-
     def worker(colname, aggfn, ordtype, side, touch, verbose=verbose-1):
-    	k = '%s(%s)_for_%s_%s_orders' % (aggfn, colname, ordtype if ordtype is not None else 'All', side if side is not None else 'All')
-    	k += '_at_touch' if touch is not None else ''
-    	filstr = getordersfilstr(ordtype, side, touch)
-    	if verbose > 0:
-    		t2 = time.time()
-    		print ('k:%s\nfilstr:%s' % (k, filstr))
-    	v = utils.get_fil_agg(dfday, colname, aggfn, filstr=filstr)
-    	if verbose > 0:
-    		print ('done in: %.2f' % (time.time()-t0))
-    		if verbose > 1:
-    			print (v)
-    	return k, v
+        k = '%s(%s)_for_%s_%s_orders' % (aggfn, colname, ordtype if ordtype is not None else 'All', side if side is not None else 'All')
+        k += '_at_touch' if touch is not None else ''
+        filstr = getordersfilstr(ordtype, side, touch)
+        if verbose > 0:
+            t2 = time.time()
+            print ('k:%s\nfilstr:%s' % (k, filstr))
+        v = utils.get_fil_agg(dfday, colname, aggfn, filstr=filstr)
+        if verbose > 0:
+            print ('done in: %.2f' % (time.time()-t0))
+            if verbose > 1:
+                print (v)
+        return k, v
 
     ftorders = [worker(colname, aggfn, ordtype, side, touch)
-    	for colname, aggfn in [('*', 'count'), ('book_change', 'sum')]
-    	for ordtype in [None, 'New', 'Cancelled', 'Executed']
-    	for side in [None, 'Buy', 'Sell']
-    	for touch in [None]]
+        for colname, aggfn in [('*', 'count'), ('book_change', 'sum')]
+        for ordtype in [None, 'New', 'Cancelled', 'Executed']
+        for side in [None, 'Buy', 'Sell']
+        for touch in [None]]
 
     if verbose > 1:
         print ('orders features done in: %.2f' % (time.time()-t1))
