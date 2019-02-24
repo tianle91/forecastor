@@ -6,8 +6,7 @@ import numpy as np
 def flattendic_orders(d):
     out = None
     if d['orders'] is not None:
-        out = [d['orders'][k]['Volume'] for k in d['orders']]
-        out += [d['orders'][k]['Number'] for k in d['orders']]
+        out = [d['orders'][k] for k in d['orders']]
         out += [d['book'][k] if not (k == 'prices') else None for k in d['book']]
         out += [d['book']['prices'][k] for k in d['book']['prices']]
     return out
@@ -15,7 +14,7 @@ def flattendic_orders(d):
 def flattendic_trades(d):
     out = None
     if d is not None:
-        out = [d['gpbyprice'][k] for k in d['gpbyprice']]
+        out = [d[k] for k in d]
     return out
 
 
