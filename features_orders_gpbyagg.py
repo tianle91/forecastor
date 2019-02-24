@@ -134,9 +134,8 @@ def features(symbol, date_string, venue = 'TSX',
     def worker(dt, verbose):
         if verbose > 0:
             t2 = time.time()
-        dftemp = dfday.filter('''timed < '%s' ''' % (utils.utctimestamp(dt)))
-        dfbook = orderbook(dftemp, verbose=verbose-2)
-        out = Book(dfbook.toPandas(), verbose=verbose-2).features()
+        pdf = orderbook(utils.subsetbytime(dfday, dt), verbose=verbose-2).toPandas()
+        out = Book(pdf, verbose=verbose-2).features()
         if verbose > 0:
             print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
             # 5s per run
