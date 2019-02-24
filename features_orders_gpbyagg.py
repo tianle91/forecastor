@@ -4,6 +4,7 @@ import numpy as np
 import sparkdfutils as utils
 from Book import Book
 from pyspark.sql.types import *
+import pyspark.sql.functions as F
 
 
 def dailyorders(symbol, date_string, venue, tsunit):
@@ -237,6 +238,7 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = orderfeaturesbycovname[covname]
         for index, row in dftemp.iterrows():
             dt, value = row[0], row[1]
+            dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
             if dt in ordersfeatures:
                 ordersfeatures[dt][covname] = value
 
