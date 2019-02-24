@@ -176,7 +176,7 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     if verbose > 1:
         t1 = time.time()
-        print ('doing orders features no touch')
+        print ('doing orders features')
 
     def covnamer(colname, aggfn, ordtype, side, touch):
         k = '%s(%s)_for_type:%s_side:%s_orders' %\
