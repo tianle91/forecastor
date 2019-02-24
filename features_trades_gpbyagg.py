@@ -75,7 +75,7 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     # trades features
     # --------------------------------------------------------------------------
-    if verbose > 1:
+    if verbose > 0:
         t1 = time.time()
         print ('doing trades features')
 
@@ -117,8 +117,9 @@ def features(symbol, date_string, venue = 'TSX',
     price_wgtbyqty = price_wgtbyqty.toPandas()
     tradesfeaturesbycovname['price_wgtbyqty'] = price_wgtbyqty
 
-    if verbose > 1:
+    if verbose > 0:
         print ('trades features done in: %.2f' % (time.time()-t1))
+    if verbose > 1:
         print ('number of covariates for new trades:', len(list(tradesfeaturesbycovname.keys())))
 
 
@@ -140,7 +141,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         print ('all done in: %.2f' % (time.time()-t0))
-        
+
     return tradesfeatures
 
 
