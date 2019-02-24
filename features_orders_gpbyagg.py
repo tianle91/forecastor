@@ -115,7 +115,10 @@ def features(symbol, date_string, venue = 'TSX',
     tradingtimesdf.sort()
 
     if verbose > 1:
-        print ('len(tradingtimesdf): %s\ntrading times in dfday in US/Eastern:\n%s' % (len(tradingtimesdf), tradingtimesdf))
+        print ('len(tradingtimesdf):', len(tradingtimesdf))
+        if verbose > 2:
+            print ('trading times in dfday in US/Eastern:')
+            print ([str(dt) for dt in tradingtimesdf])
 
 
     # --------------------------------------------------------------------------
@@ -131,10 +134,10 @@ def features(symbol, date_string, venue = 'TSX',
         if verbose > 0:
             t2 = time.time()
         dftemp = dfday.filter('''timed < '%s' ''' % (utils.utctimestamp(dt)))
-        dfbook = orderbook(dftemp, verbose=verbose)
-        out = Book(dfbook.toPandas(), verbose=verbose).features()
+        dfbook = orderbook(dftemp, verbose=verbose-2)
+        out = Book(dfbook.toPandas(), verbose=verbose-2).features()
         if verbose > 0:
-            print ('doing book features for dt: %s done in: %.2f' % (dt, time.time()-t2))
+            print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
             # 5s per run
         return out
 
@@ -217,15 +220,35 @@ def features(symbol, date_string, venue = 'TSX',
     ]
 
     resl = map(lambda x: worker(**x), params_notouch)
-    #orderfeatures = {k: v for k, v in resl}
-
+    orderfeaturesbycovname = {k: v for k, v in resl}
 
     if verbose > 1:
         print ('orders features done in: %.2f' % (time.time()-t1))
+        print ('number of covariates for new orders:', len(list(orderfeaturesbycovname.keys())))
 
-    
+    # change to dt key    
+    dummydict = {}
+    for covname in orderfeaturesbycovname:
+        dummydict[covname] = None
+    ordersfeatures = {dt: dummydict.copy() for dt in tradingtimesdf}    
+
+    for covname in orderfeaturesbycovname:
+        dftemp = orderfeaturesbycovname[covname]
+        for index, row in dftemp.iterrows():
+            dt, value = row[0], row[1]
+            if dt in ordersfeatures:
+                ordersfeatures[dt][covname] = value
+
+
+    # --------------------------------------------------------------------------
+    # collect and return
+    # --------------------------------------------------------------------------
     dfday.unpersist()
-    return ftorders
+    
+    out = {}
+    for dt in tradingtimesdf:
+        out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
+    return out
 
 
 if __name__ == '__main__':
@@ -236,6 +259,6 @@ if __name__ == '__main__':
         'tsunit': 'MINUTE',
         'tstart_string': '10:00',
         'tend_string': '12:00',
-        'verbose': 1}
+        'verbose': 2}
 
     x = features(**params)
