@@ -52,7 +52,7 @@ def features(symbol, date_string, venue = 'TSX',
     # get all transactions prior to tradingtimes[-1]
     dfday = dailytrades(symbol, date_string, tsunit)
     dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    dfday.cache()
+    #dfday.cache()
 
     if verbose > 0:
         print ('cached trades for %s done in: %.2f ntrades: %d' %\
@@ -137,7 +137,7 @@ def features(symbol, date_string, venue = 'TSX',
             if dt in tradesfeatures:
                 tradesfeatures[dt][covname] = float(value)
 
-    dfday.unpersist()
+    #dfday.unpersist()
 
     if verbose > 0:
         print ('all done in: %.2f' % (time.time()-t0))
