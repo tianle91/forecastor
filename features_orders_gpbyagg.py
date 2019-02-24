@@ -148,7 +148,7 @@ def features(symbol, date_string, venue = 'TSX',
         bookfeatures[dt] = fttemp 
 
     if verbose > 0:
-        print ('done in: %.2f' % (time.time()-t1))
+        print ('book features done in: %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
@@ -172,7 +172,7 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     # orders features
     # --------------------------------------------------------------------------
-    if verbose > 1:
+    if verbose > 0:
         t1 = time.time()
         print ('doing orders features')
 
@@ -222,6 +222,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         print ('orders features done in: %.2f' % (time.time()-t1))
+    if verbose > 1:
         print ('number of covariates for new orders:', len(list(orderfeaturesbycovname.keys())))
 
 
