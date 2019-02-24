@@ -136,6 +136,7 @@ def features(symbol, date_string, venue = 'TSX',
             if dt in tradesfeatures:
                 tradesfeatures[dt][covname] = float(value)
 
+    dfday.unpersist()
     return tradesfeatures
 
 

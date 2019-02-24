@@ -245,12 +245,12 @@ def features(symbol, date_string, venue = 'TSX',
 
     # --------------------------------------------------------------------------
     # collect and return
-    # --------------------------------------------------------------------------
-    dfday.unpersist()
-    
+    # --------------------------------------------------------------------------   
     out = {}
     for dt in tradingtimesdf:
         out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
+
+	dfday.unpersist()
     return out
 
 
