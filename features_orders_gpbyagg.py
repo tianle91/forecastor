@@ -14,7 +14,7 @@ def dailyorders(symbol, date_string, venue, tsunit):
             https://spark.apache.org/docs/2.3.0/api/sql/#date_trunc
     '''
     s = '''SELECT
-            book_change, 
+            book_change,
             side, 
             price,
             reason,
@@ -165,6 +165,7 @@ def features(symbol, date_string, venue = 'TSX',
         schema)
 
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
+    touchdf = touchdf.withColumn('ABS(book_change)', F.abs(touchdf.book_change))
     
     dfday.unpersist()
     dfday = dfday.join(touchdf, "timed")
@@ -213,7 +214,7 @@ def features(symbol, date_string, venue = 'TSX',
             'touch': touch,
             'verbose': verbose-1
         }
-        for colname, aggfn in [('*', 'count'), ('book_change', 'sum')]
+        for colname, aggfn in [('*', 'count'), ('ABS(book_change)', 'sum')]
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for touch in [False, True]
