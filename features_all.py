@@ -2,12 +2,17 @@ import os
 import gzip
 import time
 import pickle
+import argparse
 import numpy as np
 import pandas as pd
 
 
 tsunit = 'MINUTE'
+
 symbol = 'TD'
+#symbol = 'BPY.UN'
+#symbol = 'UFS'
+#symbol = 'VFV'
 
 #datelenname = '1wk'
 datelenname = '1mo'
