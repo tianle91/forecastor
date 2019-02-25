@@ -165,10 +165,10 @@ def features(symbol, date_string, venue = 'TSX',
         schema)
 
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
-    touchdf = touchdf.withColumn('ABS(book_change)', F.abs(touchdf.book_change))
     
     dfday.unpersist()
     dfday = dfday.join(touchdf, "timed")
+    dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
     dfday.cache()
 
 
