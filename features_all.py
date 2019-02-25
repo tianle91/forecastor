@@ -6,12 +6,14 @@ import numpy as np
 import pandas as pd
 
 
-datelenname = '1wk'
-#datelenname = '1mo'
-timelenname = '1h'
-#timelenname = 'fullday'
 tsunit = 'MINUTE'
 symbol = 'TD'
+
+#datelenname = '1wk'
+datelenname = '1mo'
+
+timelenname = '1h'
+#timelenname = 'fullday'
 
 
 # process arguments
