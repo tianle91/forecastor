@@ -22,6 +22,7 @@ class TXLoader(object):
 
     def __init__(self, jobname, symbol):
         dates = pickle.load(open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname, symbol), 'rb'))
+        self.dates = dates
         self.orders = {}
         self.trades = {}
         for dt in dates:
@@ -51,7 +52,7 @@ class TXLoader(object):
             alltimes.sort()
 
             resl = [toflatlist(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
-            return np.array([l for l in resl if l is not None])
+            return alltimes, np.array([l for l in resl if l is not None])
         else:
             alldays = list(self.orders.keys())
             alldays.sort()
@@ -61,4 +62,6 @@ class TXLoader(object):
                 resl = [toflatlist(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtradesday[dt])) for dt in alltimes]
                 return [l for l in resl if l is not None]
 
-            return np.array([worker(self.orders[dt], self.trades[dt]) for dt in alldays])
+            alltimesday0 = list(self.orders[alldays[0]].keys())
+            alltimesday0.sort()
+            return alldays, alltimesday0, np.array([worker(self.orders[dt], self.trades[dt]) for dt in alldays])
