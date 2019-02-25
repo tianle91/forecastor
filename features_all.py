@@ -1,5 +1,5 @@
+import os
 import gzip
-import json
 import time
 import pickle
 import numpy as np
@@ -7,7 +7,9 @@ import pandas as pd
 
 
 datelenname = '1wk'
+#datelenname = '1mo'
 timelenname = '1h'
+#timelenname = 'fullday'
 tsunit = 'MINUTE'
 symbol = 'TD'
 
@@ -47,17 +49,37 @@ def getparams(dt, verbose):
     return out
 
 
-t1 = time.time()
+# ------------------------------------------------------------------------------
+# dump the dates
+# ------------------------------------------------------------------------------
+pickle.dump(dates, open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname, symbol), 'wb'))
+
+
+# ------------------------------------------------------------------------------
+# run the orders features
+# ------------------------------------------------------------------------------
 exec(open('features_orders_gpbyagg.py').read())
-resdorders = {dt: features(**getparams(dt, verbose=1)) for dt in dates}
-print ('done in: %.2f' % (time.time()-t1))
 
-pickle.dump(resdorders, gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'wb'))
+def worker(dt, jobid, overwrite=True, verbose=1):
+    fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
+    if overwrite and not os.path.isfile(fname):
+        out = features(**getparams(dt, verbose=verbose))
+        pickle.dump(out, gzip.open(fname, 'wb'))
+
+for dt in dates:
+    temp =  worker(dt, jobname)
 
 
-t1 = time.time()
-exec(open('features_trades.py').read())
-resdtrades = {dt: features(**getparams(dt, verbose=1)) for dt in dates}
-print ('done in: %.2f' % (time.time()-t1))
+# ------------------------------------------------------------------------------
+# run the trades features
+# ------------------------------------------------------------------------------
+exec(open('features_trades_gpbyagg.py').read())
 
-pickle.dump(resdtrades, gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'wb'))
+def worker(dt, jobid, overwrite=True, verbose=1):
+    fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
+    if overwrite and not os.path.isfile(fname):
+        out = features(**getparams(dt, verbose=verbose))
+        pickle.dump(out, gzip.open(fname, 'wb'))
+
+for dt in dates:
+    temp =  worker(dt, jobname)
