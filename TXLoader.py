@@ -21,8 +21,14 @@ def flattendic_trades(d):
 class TXLoader(object):
 
     def __init__(self, jobname, symbol):
-        self.orders = pickle.load(gzip.open('%s_SYM:%s_orders.pickle.gz' % (jobname, symbol), 'rb'))
-        self.trades = pickle.load(gzip.open('%s_SYM:%s_trades.pickle.gz' % (jobname, symbol), 'rb'))
+        dates = pickle.load(open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname, symbol), 'rb'))
+        self.orders = {}
+        self.trades = {}
+        for dt in dates:
+            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
+            self.orders[dt] = pickle.load(gzip.open(fname, 'rb'))
+            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
+            self.trades[dt] = pickle.load(gzip.open(fname, 'rb'))
 
 
     def getxm(self, byday=False):
