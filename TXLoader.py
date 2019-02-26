@@ -17,6 +17,20 @@ def flattendic_trades(d):
         out = [d[k] for k in d]
     return out
 
+def flattencovname_orders(d):
+	out = []
+    if d['orders'] is not None:
+        out = ['orders:' + k for k in d['orders']]
+        out += ['book:' + k if not (k == 'prices') else None for k in d['book']]
+        out += ['prices:' + k for k in d['book']['prices']]
+    return out
+
+def flattencovname_trades(d):
+	out = []
+    if d is not None:
+        out = ['trades:' + k for k in d]
+    return out
+
 
 class TXLoader(object):
 
@@ -31,6 +45,14 @@ class TXLoader(object):
             fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
             self.trades[dt] = pickle.load(gzip.open(fname, 'rb'))
         self.verbose = verbose
+
+
+    def getcovnames(self):
+    	date0 = self.dates[0]
+    	time0 = list(self.orders[date0].keys())[0]
+    	out = flattencovname_orders(self.orders[date0][time0])
+    	out += flattencovname_trades(self.trades[date0][time0])
+    	return out
 
 
     def getxm(self, byday=False):
