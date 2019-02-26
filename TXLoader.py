@@ -51,17 +51,29 @@ class TXLoader(object):
             alltimes = list(resdorders.keys())
             alltimes.sort()
 
-            resl = [toflatlist(flattendic_orders(resdorders[dt]), flattendic_trades(resdtrades[dt])) for dt in alltimes]
+            def worker(dt):
+            	flatords = resdorders[dt]
+            	flattrades = resdtrades[dt]
+            	return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
+
+            resl = [worker(dt) for dt in alltimes]
             return alltimes, np.array([l for l in resl if l is not None])
+
         else:
             alldays = list(self.orders.keys())
             alldays.sort()
 
-            def worker(resdordersday, resdtradesday):
-                alltimes = list(resdordersday.keys())
-                resl = [toflatlist(flattendic_orders(resdordersday[dt]), flattendic_trades(resdtradesday[dt])) for dt in alltimes]
-                return [l for l in resl if l is not None]
-
             alltimesday0 = list(self.orders[alldays[0]].keys())
             alltimesday0.sort()
-            return alldays, alltimesday0, np.array([worker(self.orders[dt], self.trades[dt]) for dt in alldays])
+
+            def workerinday(dt, dtinday):
+            	flatords = self.orders[dt][dtinday]
+            	flattrades = self.trades[dt][dtinday]
+            	return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
+
+            def worker(dt):
+                alltimesinday = list(self.orders[dt].keys())
+                resl = [workerinday(dt, dtinday) for dtinday in alltimesinday]
+                return [l for l in resl if l is not None]
+
+            return alldays, alltimesday0, np.array([worker(dt) for dt in alldays])
