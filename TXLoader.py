@@ -18,7 +18,7 @@ def flattendic_trades(d):
     return out
 
 def flattencovname_orders(d):
-	out = []
+    out = []
     if d['orders'] is not None:
         out = ['orders:' + k for k in d['orders']]
         out += ['book:' + k if not (k == 'prices') else None for k in d['book']]
@@ -26,7 +26,7 @@ def flattencovname_orders(d):
     return out
 
 def flattencovname_trades(d):
-	out = []
+    out = []
     if d is not None:
         out = ['trades:' + k for k in d]
     return out
@@ -48,11 +48,11 @@ class TXLoader(object):
 
 
     def getcovnames(self):
-    	date0 = self.dates[0]
-    	time0 = list(self.orders[date0].keys())[0]
-    	out = flattencovname_orders(self.orders[date0][time0])
-    	out += flattencovname_trades(self.trades[date0][time0])
-    	return out
+        date0 = self.dates[0]
+        time0 = list(self.orders[date0].keys())[0]
+        out = flattencovname_orders(self.orders[date0][time0])
+        out += flattencovname_trades(self.trades[date0][time0])
+        return out
 
 
     def getxm(self, byday=False):
@@ -75,14 +75,14 @@ class TXLoader(object):
             alltimes.sort()
 
             def worker(dt):
-            	flatords = resdorders[dt]
-            	flattrades = resdtrades[dt]
-            	return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
+                flatords = resdorders[dt]
+                flattrades = resdtrades[dt]
+                return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
 
             resl = [worker(dt) for dt in alltimes]
             resl = [l for l in resl if l is not None]
             if self.verbose > 0:
-            	print ('byday: %s has len(resl: %s' % (byday, len(resl)))
+                print ('byday: %s has len(resl: %s' % (byday, len(resl)))
 
             return np.array(resl)
 
@@ -91,9 +91,9 @@ class TXLoader(object):
             alldays.sort()
 
             def workerinday(dt, dtinday):
-            	flatords = self.orders[dt][dtinday]
-            	flattrades = self.trades[dt][dtinday]
-            	return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
+                flatords = self.orders[dt][dtinday]
+                flattrades = self.trades[dt][dtinday]
+                return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
 
             def worker(dt):
                 alltimesinday = list(self.orders[dt].keys())
@@ -103,8 +103,8 @@ class TXLoader(object):
             resll = [worker(dt) for dt in alldays]
             resll = [l for l in resll if len(l) > 0]
             if self.verbose > 0:
-            	print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
-            	for resl in resll:
-            		print ('len(resl):', len(resl))
+                print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
+                for resl in resll:
+                    print ('len(resl):', len(resl))
 
             return np.array(resll)
