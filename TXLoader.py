@@ -20,7 +20,7 @@ def flattendic_trades(d):
 
 class TXLoader(object):
 
-    def __init__(self, jobname, symbol):
+    def __init__(self, jobname, symbol, verbose=0):
         dates = pickle.load(open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname, symbol), 'rb'))
         self.dates = dates
         self.orders = {}
@@ -30,6 +30,7 @@ class TXLoader(object):
             self.orders[dt] = pickle.load(gzip.open(fname, 'rb'))
             fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
             self.trades[dt] = pickle.load(gzip.open(fname, 'rb'))
+        self.verbose = verbose
 
 
     def getxm(self, byday=False):
@@ -57,7 +58,11 @@ class TXLoader(object):
             	return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
 
             resl = [worker(dt) for dt in alltimes]
-            return alltimes, np.array([l for l in resl if l is not None])
+            resl = [l for l in resl if l is not None]
+            if self.verbose > 0:
+            	print ('byday: %s has len(resl: %s' % (byday, len(resl)))
+
+            return alltimes, np.array(resl)
 
         else:
             alldays = list(self.orders.keys())
@@ -76,4 +81,10 @@ class TXLoader(object):
                 resl = [workerinday(dt, dtinday) for dtinday in alltimesinday]
                 return [l for l in resl if l is not None]
 
-            return alldays, alltimesday0, np.array([worker(dt) for dt in alldays])
+            resll = [worker(dt) for dt in alldays]
+            if self.verbose > 0:
+            	print ('byday: %s:\n len(resll): %s' % (byday, len(resll)))
+            	for resl in resll:
+            		print ('len(resl):', len(resl))
+
+            return alldays, alltimesday0, np.array(resll)
