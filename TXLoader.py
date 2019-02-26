@@ -62,14 +62,11 @@ class TXLoader(object):
             if self.verbose > 0:
             	print ('byday: %s has len(resl: %s' % (byday, len(resl)))
 
-            return alltimes, np.array(resl)
+            return np.array(resl)
 
         else:
             alldays = list(self.orders.keys())
             alldays.sort()
-
-            alltimesday0 = list(self.orders[alldays[0]].keys())
-            alltimesday0.sort()
 
             def workerinday(dt, dtinday):
             	flatords = self.orders[dt][dtinday]
@@ -82,9 +79,10 @@ class TXLoader(object):
                 return [l for l in resl if l is not None]
 
             resll = [worker(dt) for dt in alldays]
+            resll = [l for l in resll if l is not None]
             if self.verbose > 0:
-            	print ('byday: %s:\n len(resll): %s' % (byday, len(resll)))
+            	print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
             	for resl in resll:
             		print ('len(resl):', len(resl))
 
-            return alldays, alltimesday0, np.array(resll)
+            return np.array(resll)
