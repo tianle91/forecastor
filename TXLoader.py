@@ -79,7 +79,7 @@ class TXLoader(object):
                 return [l for l in resl if l is not None]
 
             resll = [worker(dt) for dt in alldays]
-            resll = [l for l in resll if l is not None]
+            resll = [l for l in resll if len(l) > 0]
             if self.verbose > 0:
             	print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
             	for resl in resll:
