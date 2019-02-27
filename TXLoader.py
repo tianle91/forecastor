@@ -97,6 +97,7 @@ class TXLoader(object):
 
             def worker(dt):
                 alltimesinday = list(self.orders[dt].keys())
+                alltimesinday.sort()
                 resl = [workerinday(dt, dtinday) for dtinday in alltimesinday]
                 return [l for l in resl if l is not None]
 
