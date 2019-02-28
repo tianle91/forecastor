@@ -42,22 +42,28 @@ def getparams(dt, verbose):
 
 if __name__ == '__main__':
 
+    # parse arguments
+    parser = argparse.ArgumentParser()
 
-    tsunit = 'MINUTE'
-
-    symbol = 'TD'
+    #symbol = 'TD'
     #symbol = 'BPY.UN'
     #symbol = 'UFS'
     #symbol = 'VFV'
+    help_ = "ticker symbol"
+    parser.add_argument("-t", "--ticker", help=help_, action='store_true')
 
+    args = parser.parse_args()
+
+    symbol = args.symbol
+    tsunit = 'MINUTE'
     #datelenname = '1wk'
     datelenname = '1mo'
-
     timelenname = '1h'
     #timelenname = 'fullday'
 
 
     jobname = '%s-%s' % (datelenname, timelenname)
+    print ('doing jobname: %s for symbol: %s' % (jobname, symbol))
 
 
     # ------------------------------------------------------------------------------
@@ -71,7 +77,7 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------------
     exec(open('features_orders_gpbyagg.py').read())
 
-    def worker(dt, jobid, overwrite=True, verbose=1):
+    def worker(dt, jobid, overwrite=False, verbose=1):
         fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
         if overwrite and not os.path.isfile(fname):
             out = features(**getparams(dt, verbose=verbose))
@@ -86,7 +92,7 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------------
     exec(open('features_trades_gpbyagg.py').read())
 
-    def worker(dt, jobid, overwrite=True, verbose=1):
+    def worker(dt, jobid, overwrite=False, verbose=1):
         fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
         if overwrite and not os.path.isfile(fname):
             out = features(**getparams(dt, verbose=verbose))
