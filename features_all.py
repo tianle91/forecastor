@@ -77,6 +77,8 @@ def worker(dt, jobid, overwrite=False, verbose=1):
     if overwrite and not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
+    else:
+        print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
 for dt in dates:
     temp =  worker(dt, jobname)
@@ -92,6 +94,8 @@ def worker(dt, jobid, overwrite=False, verbose=1):
     if overwrite and not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
+    else:
+        print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
 for dt in dates:
     temp =  worker(dt, jobname)
