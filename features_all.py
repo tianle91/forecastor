@@ -74,7 +74,7 @@ exec(open('features_orders_gpbyagg.py').read())
 
 def worker(dt, jobid, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
-    if overwrite and not os.path.isfile(fname):
+    if overwrite or not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
     else:
@@ -91,7 +91,7 @@ exec(open('features_trades_gpbyagg.py').read())
 
 def worker(dt, jobid, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
-    if overwrite and not os.path.isfile(fname):
+    if overwrite or not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
     else:
