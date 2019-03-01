@@ -9,17 +9,23 @@ import pandas as pd
 
 # ------------------------------------------------------------------------------
 # parse arguments and shit
+# orders_features:
+#     takes 350s/60evals ~ 6m/60evals ~ 1m/10evals
+#     for 44*60evals, expect 44*6m = 260m = 4h 
 # ------------------------------------------------------------------------------
 #symbol = 'TD'
 #symbol = 'BPY.UN'
 #symbol = 'UFS'
 #symbol = 'VFV'
 
-tsunit = 'MINUTE'
 #datelenname = '1wk'
-datelenname = '1mo'
-timelenname = '1h'
+#datelenname = '1mo'
+#datelenname = '2mo'
+
+#timelenname = '1h'
 #timelenname = 'fullday'
+
+#tsunit = 'MINUTE'
 
 
 jobname = '%s-%s' % (datelenname, timelenname)
@@ -30,16 +36,20 @@ print ('doing jobname: %s for symbol: %s' % (jobname, symbol))
 if timelenname == '1h':
     tstart_string = '10:00'
     tend_string = '11:00'
+elif timelenname == '2h':
+	tstart_string = '10:00'
+	tend_string = '12:00'
 elif timelenname == 'fullday':
     tstart_string = '09:30'
     tend_string = '16:00'
 
+start = pd.to_datetime('2018-04-01')
 if datelenname == '1wk':
-    start = pd.to_datetime('2018-04-01')
     end = pd.to_datetime('2018-04-08')
 elif datelenname == '1mo':
-    start = pd.to_datetime('2018-04-01')
-    end = pd.to_datetime('2018-05-31')
+    end = pd.to_datetime('2018-05-01')
+elif datelenname == '2mo':
+	end = pd.to_datetime('2018-06-01')
 
 
 # ------------------------------------------------------------------------------
