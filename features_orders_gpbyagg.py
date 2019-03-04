@@ -184,7 +184,7 @@ def features(symbol, date_string, venue = 'TSX',
             (aggfn, colname, 
                 ordtype if ordtype is not None else 'All', 
                 side if side is not None else 'All')
-        k += '_at_touch' if touch is not None else ''
+        k += '_at_touch' if touch else ''
         return k
 
     def worker(colname, aggfn, ordtype, side, touch, verbose):
