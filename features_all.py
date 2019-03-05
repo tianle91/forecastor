@@ -80,7 +80,7 @@ pickle.dump(dates, open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname,
 # ------------------------------------------------------------------------------
 # run the orders features
 # ------------------------------------------------------------------------------
-exec(open('features_orders_gpbyagg.py').read())
+exec(open('features_orders.py').read())
 
 def worker(dt, jobid, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
@@ -97,7 +97,7 @@ for dt in dates:
 # ------------------------------------------------------------------------------
 # run the trades features
 # ------------------------------------------------------------------------------
-exec(open('features_trades_gpbyagg.py').read())
+exec(open('features_trades.py').read())
 
 def worker(dt, jobid, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
