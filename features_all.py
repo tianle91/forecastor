@@ -50,6 +50,8 @@ elif datelenname == '1mo':
     end = pd.to_datetime('2018-05-01')
 elif datelenname == '2mo':
 	end = pd.to_datetime('2018-06-01')
+elif datelenname == '6mo':
+    end = pd.to_datetime('2018-10-01')
 
 
 # ------------------------------------------------------------------------------
