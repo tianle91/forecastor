@@ -31,6 +31,10 @@ def flattencovname_trades(d):
         out = ['trades:' + k for k in d]
     return out
 
+def toflatlist(flatords, flattrades):
+    if flatords is not None and flattrades is not None:
+        return flatords + flattrades
+
 
 class TXLoader(object):
 
@@ -55,57 +59,27 @@ class TXLoader(object):
         return out
 
 
-    def getxm(self, byday=False):
+    def getxm(self):
 
-        def toflatlist(flatords, flattrades):
-            if flatords is not None and flattrades is not None:
-                return flatords + flattrades
+        alldays = list(self.orders.keys())
+        alldays.sort()
 
-        if not byday:
-            #flatten resd into flat time index for just minute-level
-            resdorders = {k2: self.orders[k1][k2] 
-                for k1 in self.orders 
-                for k2 in self.orders[k1]}
-            resdtrades = {k2: self.trades[k1][k2] 
-                for k1 in self.trades 
-                for k2 in self.trades[k1]}
+        def workerinday(dt, dtinday):
+            flatords = self.orders[dt][dtinday]
+            flattrades = self.trades[dt][dtinday]
+            return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
 
-            #get all ordered time indices 
-            alltimes = list(resdorders.keys())
-            alltimes.sort()
+        def worker(dt):
+            alltimesinday = list(self.orders[dt].keys())
+            alltimesinday.sort()
+            resl = [workerinday(dt, dtinday) for dtinday in alltimesinday]
+            return [l for l in resl if l is not None]
 
-            def worker(dt):
-                flatords = resdorders[dt]
-                flattrades = resdtrades[dt]
-                return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
+        resll = [worker(dt) for dt in alldays]
+        resll = [l for l in resll if len(l) > 0]
+        if self.verbose > 0:
+            print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
+            for resl in resll:
+                print ('len(resl):', len(resl))
 
-            resl = [worker(dt) for dt in alltimes]
-            resl = [l for l in resl if l is not None]
-            if self.verbose > 0:
-                print ('byday: %s has len(resl: %s' % (byday, len(resl)))
-
-            return np.array(resl)
-
-        else:
-            alldays = list(self.orders.keys())
-            alldays.sort()
-
-            def workerinday(dt, dtinday):
-                flatords = self.orders[dt][dtinday]
-                flattrades = self.trades[dt][dtinday]
-                return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
-
-            def worker(dt):
-                alltimesinday = list(self.orders[dt].keys())
-                alltimesinday.sort()
-                resl = [workerinday(dt, dtinday) for dtinday in alltimesinday]
-                return [l for l in resl if l is not None]
-
-            resll = [worker(dt) for dt in alldays]
-            resll = [l for l in resll if len(l) > 0]
-            if self.verbose > 0:
-                print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
-                for resl in resll:
-                    print ('len(resl):', len(resl))
-
-            return np.array(resll)
+        return np.array(resll)
