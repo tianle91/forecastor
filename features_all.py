@@ -39,6 +39,9 @@ if timelenname == '1h':
 elif timelenname == '2h':
 	tstart_string = '10:00'
 	tend_string = '12:00'
+elif timelenname == 'morning':
+	tstart_string = '09:30'
+	tend_string = '12:00'
 elif timelenname == 'fullday':
     tstart_string = '09:30'
     tend_string = '16:00'
