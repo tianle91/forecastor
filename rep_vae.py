@@ -31,6 +31,7 @@ interm_dim = int(ncov/2)+1
 latent_dim = int(interm_dim/2)+1
 print ((ncov, interm_dim, latent_dim))
 
+
 ## -----------------------------------------------------------------------------
 ## build encoder model. 
 ## inputs -> x -> [z_mean, z_log_var]
@@ -56,6 +57,7 @@ z = Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
 encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
 encoder.summary()
 
+
 ## -----------------------------------------------------------------------------
 ## build decoder model
 ## [z_sampled -> x -> ouputs]
@@ -67,6 +69,7 @@ outputs = Dense(ncov, activation='tanh')(x)
 # instantiate decoder model
 decoder = Model(latent_inputs, outputs, name='decoder')
 decoder.summary()
+
 
 ## -----------------------------------------------------------------------------
 ## instantiate VAE model
@@ -87,6 +90,29 @@ vae.compile(optimizer=Adam(lr=0.00001))
 vae.summary()
 
 
+## -----------------------------------------------------------------------------
+## vizualization
+## -----------------------------------------------------------------------------
+def viz_covariates(xms):
+    ntime, ncov = xms.shape
+    fig, ax = plt.subplots(1, figsize=(ntime/10, ncov/10))
+    ax.imshow(np.transpose(xms), aspect=ntime/ncov)
+    
+    # box for orders features
+    ax.add_patch(patches.Rectangle((0, 0), ntime-1, 48-1, 
+        linewidth=2, edgecolor='r', facecolor='none'))
+    # box for book features
+    ax.add_patch(patches.Rectangle((0, 48), ntime-1, 5-1, 
+        linewidth=2, edgecolor='r', facecolor='none'))
+    # box for trades features
+    ax.add_patch(patches.Rectangle((0, 53), ntime-1, 8, 
+        linewidth=2, edgecolor='r', facecolor='none'))
+
+    ax.set_xlabel('time')
+    ax.set_ylabel('covariates')
+    plt.show()
+
+
 if __name__ == '__main__':
     
     symbol = 'TD'
@@ -94,7 +120,6 @@ if __name__ == '__main__':
     dotraining = True
 
     xm = TXLoader(jobname=jobname, symbol=symbol).getxm()
-    xm[np.isnan(xm)] = 0
     nday, ntime, ncov = xm.shape
     print ('xm.shape:', xm.shape)
 
