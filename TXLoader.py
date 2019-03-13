@@ -59,7 +59,7 @@ class TXLoader(object):
         return out
 
 
-    def getxm(self):
+    def getxm(self, nanis=0):
 
         alldays = list(self.orders.keys())
         alldays.sort()
@@ -82,4 +82,7 @@ class TXLoader(object):
             for resl in resll:
                 print ('len(resl):', len(resl))
 
-        return np.array(resll)
+        out = np.array(resll)
+        if nanis is not None:
+            out[np.isnan(out)] = nanis
+        return out
