@@ -20,7 +20,8 @@ from tensorflow.keras.optimizers import Adam
 # ------------------------------------------------------------------------------
 input_shape = (ncov, )
 interm_dim = int(ncov/2)+1
-latent_dim = int(interm_dim/2)+1
+#latent_dim = int(interm_dim/2)+1
+latent_dim = 16
 print ((ncov, interm_dim, latent_dim))
 
 
