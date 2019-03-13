@@ -2,25 +2,16 @@ import os
 import sys
 import gzip
 import pickle
-
 import numpy as np
 import pandas as pd
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
-from sklearn import preprocessing
-
-#from TXLoader import TXLoader
-exec(open(os.getcwd() + '/TXLoader.py').read())
 
 from tensorflow.keras.layers import Lambda, Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.losses import mse
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import Adam
-#from tensorflow.python.client import device_lib
-#print(device_lib.list_local_devices())
 
 
 # ------------------------------------------------------------------------------
@@ -89,67 +80,3 @@ vae_loss = K.mean(reconstruction_loss + kl_loss)
 vae.add_loss(vae_loss)
 vae.compile(optimizer=Adam(lr=0.00001))
 vae.summary()
-
-
-## -----------------------------------------------------------------------------
-## vizualization
-## -----------------------------------------------------------------------------
-def viz_covariates(xms):
-    ntime, ncov = xms.shape
-    fig, ax = plt.subplots(1, figsize=(ntime/10, ncov/10))
-    ax.imshow(np.transpose(xms), aspect=ntime/ncov)
-    
-    # box for orders features
-    ax.add_patch(patches.Rectangle((0, 0), ntime-1, 48-1, 
-        linewidth=2, edgecolor='r', facecolor='none'))
-    # box for book features
-    ax.add_patch(patches.Rectangle((0, 48), ntime-1, 5-1, 
-        linewidth=2, edgecolor='r', facecolor='none'))
-    # box for trades features
-    ax.add_patch(patches.Rectangle((0, 53), ntime-1, 8, 
-        linewidth=2, edgecolor='r', facecolor='none'))
-
-    ax.set_xlabel('time')
-    ax.set_ylabel('covariates')
-    plt.show()
-
-
-if __name__ == '__main__':
-    
-    symbol = 'TD'
-    jobname = '1mo-1h'
-    grpsymbols = ['TD', 'BMO', 'CM', 'RY', 'BNS']
-    dotraining = True
-
-    xmall = {symtemp: TXLoader(jobname=jobname, symbol=symtemp).getxm() for symtemp in grpsymbols}
-    ndays, ntime, ncov = xmall[symbol].shape
-    ndaystest = 1
-    print ('xmall[symbol].shape:', xmall[symbol].shape)
-
-    # scale xm
-    scaler = preprocessing.MinMaxScaler((-1, 1))
-    scaler.fit(np.concatenate([xmall[k][i, :, :] for i in range(ndays) for k in xmall], axis=0))
-    # visualize transformed covariates
-    for i in range(5):
-        viz_covariates(scaler.transform(xmall[symbol][i, :, :]))
-
-
-    # find weights if dotraining else load weights
-    weightsfname = 'vae_%s_SYM:%s.h5' % (jobname, symbol)
-    if dotraining:
-        # train on non-symbol stocks
-        xtrain = np.concatenate([scaler.transform(xmall[k][i, :, :]) for i in range(ndays-ndaystest) for k in xmall if k != symbol], axis=0)
-        xtest = np.concatenate([scaler.transform(xmall[k][i, :, :]) for i in range(ndays-ndaystest, ndays) for k in xmall if k != symbol], axis=0)
-        history = vae.fit(xtrain, epochs=5000, batch_size=64, verbose=2, validation_data=(xtest, None))
-        vae.save_weights(weightsfname)
-    else:
-        vae.load_weights(weightsfname)
-
-    # plot training history if dotraining
-    if dotraining:
-        plt.plot(history.history['loss'], color='green', label='training_loss')
-        plt.plot(history.history['val_loss'], color='red', label='validation_loss')
-        plt.xlabel('iters')
-        plt.ylabel('loss')
-        plt.legend()
-        plt.show()
