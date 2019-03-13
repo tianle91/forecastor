@@ -25,6 +25,7 @@ from tensorflow.keras.optimizers import Adam
 
 # ------------------------------------------------------------------------------
 # define VAE model
+# https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
 # ------------------------------------------------------------------------------
 input_shape = (ncov, )
 interm_dim = int(ncov/2)+1
@@ -117,26 +118,28 @@ if __name__ == '__main__':
     
     symbol = 'TD'
     jobname = '1mo-1h'
+    grpsymbols = ['TD', 'BMO', 'CM', 'RY', 'BNS']
     dotraining = True
 
-    xm = TXLoader(jobname=jobname, symbol=symbol).getxm()
-    nday, ntime, ncov = xm.shape
-    print ('xm.shape:', xm.shape)
+    xmall = {symtemp: TXLoader(jobname=jobname, symbol=symtemp).getxm() for symtemp in grpsymbols}
+    ndays, ntime, ncov = xmall[symbol].shape
+    ndaystest = 1
+    print ('xmall[symbol].shape:', xmall[symbol].shape)
 
     # scale xm
     scaler = preprocessing.MinMaxScaler((-1, 1))
-    scaler.fit(np.concatenate([xm[i, ...] for i in range(nday)], axis=0))
-    xm = np.concatenate([scaler.transform(xm[i, ...]).reshape((1, ntime, ncov)) for i in range(nday)], axis=0)
+    scaler.fit(np.concatenate([xmall[k][i, :, :] for i in range(ndays) for k in xmall], axis=0))
+    # visualize transformed covariates
     for i in range(5):
-        viz_covariates(xm[i, :, :])
+        viz_covariates(scaler.transform(xmall[symbol][i, :, :]))
 
-    xmflat = np.concatenate([xm[i, ...] for i in range(nday)], axis=0)
-    ntest = 60
-    xtrain, xtest = xmflat[:-ntest, :], xmflat[-ntest:, :]
 
     # find weights if dotraining else load weights
     weightsfname = 'vae_%s_SYM:%s.h5' % (jobname, symbol)
     if dotraining:
+        # train on non-symbol stocks
+        xtrain = np.concatenate([scaler.transform(xmall[k][i, :, :]) for i in range(ndays-ndaystest) for k in xmall if k != symbol], axis=0)
+        xtest = np.concatenate([scaler.transform(xmall[k][i, :, :]) for i in range(ndays-ndaystest, ndays) for k in xmall if k != symbol], axis=0)
         history = vae.fit(xtrain, epochs=5000, batch_size=64, verbose=2, validation_data=(xtest, None))
         vae.save_weights(weightsfname)
     else:
