@@ -82,7 +82,4 @@ class TXLoader(object):
             for resl in resll:
                 print ('len(resl):', len(resl))
 
-        out = np.array(resll)
-        if nanis is not None:
-            out[np.isnan(out)] = nanis
-        return out
+        return np.array(resll)
