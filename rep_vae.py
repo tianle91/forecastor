@@ -19,8 +19,8 @@ from tensorflow.keras.optimizers import Adam
 # https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
 # ------------------------------------------------------------------------------
 input_shape = (ncov, )
-interm_dim = np.power(2, int(np.log(ncov)/np.log(2)))
-latent_dim = np.power(2, int(np.log(interm_dim)/np.log(2)))
+interm_dim = np.power(2, max(0, int(np.log(ncov)/np.log(2))-1))
+latent_dim = np.power(2, max(0, int(np.log(interm_dim)/np.log(2))-1))
 print ((ncov, interm_dim, latent_dim))
 
 
