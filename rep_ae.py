@@ -53,7 +53,7 @@ decoder.summary()
 ## -----------------------------------------------------------------------------
 ## instantiate VAE model
 ## -----------------------------------------------------------------------------
-outputs = decoder(encoder(inputs)[2])
+outputs = decoder(encoder(inputs))
 ae = Model(inputs, outputs, name='ae')
 
 # AE loss = mse_loss
