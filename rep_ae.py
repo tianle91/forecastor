@@ -41,7 +41,7 @@ encoder.summary()
 ## build decoder model
 ## [z -> x -> ouputs]
 ## -----------------------------------------------------------------------------
-latent_inputs = Input(shape=(latent_dim,), name='decz')
+latent_inputs = Input(shape=(latent_dim,), name='decoder_input')
 x = Dense(interm_dim, activation='tanh')(latent_inputs)
 outputs = Dense(ncov, activation='tanh')(x)
 
