@@ -30,7 +30,7 @@ print ((ncov, interm_dim, latent_dim))
 ## -----------------------------------------------------------------------------
 inputs = Input(shape=input_shape, name='encoder_input')
 x = Dense(interm_dim, activation='tanh')(inputs)
-z = Dense(latent_dim, name='z')(x)
+z = Dense(latent_dim, name='encz')(x)
 
 # instantiate encoder model
 encoder = Model(inputs, z, name='encoder')
@@ -41,7 +41,7 @@ encoder.summary()
 ## build decoder model
 ## [z -> x -> ouputs]
 ## -----------------------------------------------------------------------------
-latent_inputs = Input(shape=(latent_dim,), name='z')
+latent_inputs = Input(shape=(latent_dim,), name='decz')
 x = Dense(interm_dim, activation='tanh')(latent_inputs)
 outputs = Dense(ncov, activation='tanh')(x)
 
