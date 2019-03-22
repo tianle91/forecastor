@@ -14,14 +14,28 @@ def dailytrades(symbol, date_string, tsunit):
             buy_broker,
             sell_broker,
             trade_condition,
-            date_trunc('%s', time) as timed
+            time,
+            date_trunc('%s', time) as timed,
+            ROW_NUMBER() OVER (ORDER BY time) row
         FROM trades 
         WHERE symbol = '%s' 
             AND date_string = '%s' 
             AND price > 0
         ORDER BY time ASC'''
     sargs = (tsunit, symbol, date_string)
-    return spark.sql(s % sargs)
+    spark.sql(s % sargs).createOrReplaceTempView('tradetemp')
+    
+    s = '''SELECT
+            a.*, 
+            a.price - b.price AS price_diff,
+            LOG(a.price/b.price) AS logreturn
+        FROM tradetemp a
+        LEFT JOIN tradetemp b
+            ON a.row = b.row-1'''
+    df = spark.sql(s)
+    df = df.withColumn('price_diff2', F.pow(df.price_diff, 2))
+    return df
+
 
 
 def features(symbol, date_string, venue = 'TSX',
@@ -107,15 +121,23 @@ def features(symbol, date_string, venue = 'TSX',
            ('price', 'mean'), 
            ('price', 'stddev'), 
            ('price', 'min'), 
-           ('price', 'max')]
+           ('price', 'max'),
+           ('price_diff2', 'sum'),
+           ('price_diff2', 'mean'),
+           ('price_diff2', 'stddev'),
+           ('logreturn', 'mean'),
+           ('logreturn', 'stddev')]
     ]
 
     resl = map(lambda x: worker(**x), params)
     tradesfeaturesbycovname = {k: v for k, v in resl}
 
-    price_wgtbyqty = dfday.groupBy('timed').agg((F.sum(dfday.price*dfday.quantity)/F.sum(dfday.quantity)))
-    price_wgtbyqty = price_wgtbyqty.toPandas()
-    tradesfeaturesbycovname['price_wgtbyqty'] = price_wgtbyqty
+    vwap = dfday.groupBy('timed').agg((F.sum(dfday.price*dfday.quantity)/F.sum(dfday.quantity)))
+    tradesfeaturesbycovname['vwap'] = vwap.toPandas()
+    vwquadvar = dfday.groupBy('timed').agg((F.sum(dfday.price_diff2*dfday.quantity)/F.sum(dfday.quantity)))
+    tradesfeaturesbycovname['vwquadvar'] = vwquadvar.toPandas()
+    vwlogreturn = dfday.groupBy('timed').agg((F.sum(dfday.logreturn*dfday.quantity)/F.sum(dfday.quantity)))
+    tradesfeaturesbycovname['vwlogreturn'] = vwlogreturn.toPandas()
 
     if verbose > 0:
         print ('trades features done in: %.2f' % (time.time()-t1))
