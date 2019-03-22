@@ -27,7 +27,7 @@ def dailyorders(symbol, date_string, venue, tsunit):
             AND venue = '%s'
         ORDER BY time ASC'''
     sargs = (tsunit, symbol, date_string, venue)
-    return spark.sql(s%sargs) 
+    return spark.sql(s%sargs)
 
 
 def orderbook(ordersdf, verbose=0):
@@ -160,7 +160,9 @@ def features(symbol, date_string, venue = 'TSX',
         StructField("minask", DoubleType())])
 
     touchdf = spark.createDataFrame(
-        [(utils.utctimestamp(dt), bookfeatures[dt]['maxbid'], bookfeatures[dt]['minask']) 
+        [(utils.utctimestamp(dt), 
+        	bookfeatures[dt]['maxbid'], 
+        	bookfeatures[dt]['minask']) 
             for dt in bookfeatures],
         schema)
 
