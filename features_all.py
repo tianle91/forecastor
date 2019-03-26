@@ -25,11 +25,8 @@ import pandas as pd
 #timelenname = '1h'
 #timelenname = 'fullday'
 
-#tsunit = 'MINUTE'
-
-
-jobname = '%s-%s' % (datelenname, timelenname)
-print ('doing jobname: %s for symbol: %s' % (jobname, symbol))
+tsunit = 'MINUTE'
+print ('doing datelen:%s timelen:%s for symbol: %s' % (datelenname, timelenname, symbol))
 
 
 # process arguments
@@ -79,7 +76,7 @@ def getparams(dt, verbose):
 # ------------------------------------------------------------------------------
 # dump the dates
 # ------------------------------------------------------------------------------
-pickle.dump(dates, open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname, symbol), 'wb'))
+pickle.dump(dates, open(os.getcwd() + '/data/dl:%s_tl:%s_SYM:%s_dates.pickle' % (datelenname, timelenname, symbol), 'wb'))
 
 
 # ------------------------------------------------------------------------------
@@ -88,7 +85,7 @@ pickle.dump(dates, open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname,
 exec(open('features_orders.py').read())
 
 def worker(dt, jobid, overwrite=False, verbose=1):
-    fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
+    fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (timelenname, symbol, dt)
     if overwrite or not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
@@ -105,7 +102,7 @@ for dt in dates:
 exec(open('features_trades.py').read())
 
 def worker(dt, jobid, overwrite=False, verbose=1):
-    fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
+    fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (timelenname, symbol, dt)
     if overwrite or not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
