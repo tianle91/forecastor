@@ -38,15 +38,15 @@ def toflatlist(flatords, flattrades):
 
 class TXLoader(object):
 
-    def __init__(self, jobname, symbol, verbose=0):
-        dates = pickle.load(open(os.getcwd() + '/data/%s_SYM:%s_dates.pickle' % (jobname, symbol), 'rb'))
+    def __init__(self, datelenname, timelenname, symbol, verbose=0):
+        dates = pickle.load(open(os.getcwd() + '/data/dl:%s_tl:%s_SYM:%s_dates.pickle' % (datelenname, timelenname, symbol), 'rb'))
         self.dates = dates
         self.orders = {}
         self.trades = {}
         for dt in dates:
-            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (jobname, symbol, dt)
+            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (timelenname, symbol, dt)
             self.orders[dt] = pickle.load(gzip.open(fname, 'rb'))
-            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (jobname, symbol, dt)
+            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (timelenname, symbol, dt)
             self.trades[dt] = pickle.load(gzip.open(fname, 'rb'))
         self.verbose = verbose
 
