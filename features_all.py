@@ -110,4 +110,4 @@ def worker(dt, overwrite=False, verbose=1):
         print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
 for dt in dates:
-    temp =  worker(dt, jobname)
+    temp =  worker(dt)
