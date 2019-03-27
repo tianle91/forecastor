@@ -84,7 +84,7 @@ pickle.dump(dates, open(os.getcwd() + '/data/dl:%s_tl:%s_SYM:%s_dates.pickle' % 
 # ------------------------------------------------------------------------------
 exec(open('features_orders.py').read())
 
-def worker(dt, jobid, overwrite=False, verbose=1):
+def worker(dt, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (timelenname, symbol, dt)
     if overwrite or not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
@@ -93,7 +93,7 @@ def worker(dt, jobid, overwrite=False, verbose=1):
         print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
 for dt in dates:
-    temp =  worker(dt, jobname)
+    temp =  worker(dt)
 
 
 # ------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ for dt in dates:
 # ------------------------------------------------------------------------------
 exec(open('features_trades.py').read())
 
-def worker(dt, jobid, overwrite=False, verbose=1):
+def worker(dt, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (timelenname, symbol, dt)
     if overwrite or not os.path.isfile(fname):
         out = features(**getparams(dt, verbose=verbose))
