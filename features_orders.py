@@ -30,15 +30,43 @@ def dailyorders(symbol, date_string, venue, tsunit):
     return spark.sql(s%sargs)
 
 
-def orderbook(ordersdf, verbose=0):
-    '''return table of orders agg by side, price'''
-    bk = ordersdf.groupby(['side', 'price']).agg({'book_change': 'sum'})
-    bk = bk.withColumnRenamed('sum(book_change)', 'quantity')
-    bk = bk.filter('quantity != 0')
-    bk = bk.orderBy('price')
-    if verbose > 0:
-        print ('len:', bk.count())
-    return bk
+def dailycbbo(symbol, date_string, tsunit):
+    '''return table of consolidated order
+    Args:
+        tsunit: one of ["HOUR", "MINUTE", "SECOND"]
+            https://spark.apache.org/docs/2.3.0/api/sql/#date_trunc
+    '''
+    s = '''SELECT
+            bid_price,
+            bid_size,
+            ask_price,
+            ask_size,
+            time,
+            date_trunc('%s', time) as timed,
+            ROW_NUMBER() OVER (ORDER BY time) row
+        FROM cbbo 
+        WHERE symbol = '%s' 
+            AND date_string = '%s' 
+        ORDER BY time ASC'''
+    sargs = (tsunit, symbol, date_string, venue)
+    dftemp = spark.sql(s%sargs)
+    dftemp = dftemp.withColumnRenamed('(bid_price+ask_price)/2', 'mid_price')
+    dftemp = dftemp.withColumnRenamed('((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size)', 'weighted_price')
+    dftemp.createOrReplaceTempView('cbbotemp')
+
+    s = '''SELECT
+            a.*, 
+            a.mid_price - b.mid_price AS mid_price_diff,
+            LOG(a.mid_price/b.mid_price) AS mid_price_logreturn,
+            a.weighted_price - b.weighted_price AS weighted_price_diff,
+            LOG(a.weighted_price/b.weighted_price) AS weighted_price_logtreturn
+        FROM cbbotemp a
+        LEFT JOIN cbbotemp b
+            ON a.row = b.row-1'''
+    dftemp = spark.sql(s)
+    dftemp = df.withColumn('mid_price_diff2', F.pow(dftemp.mid_price_diff, 2))
+    dftemp = df.withColumn('weighted_price_diff2', F.pow(dftemp.weighted_price_diff, 2))
+    return dftemp
 
 
 def getordersfilstr(ordtype=None, side=None, touch=False):
@@ -102,7 +130,7 @@ def features(symbol, date_string, venue = 'TSX',
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue, tsunit)
     dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    dfday.cache()
+    #dfday.cache()
 
     if verbose > 0:
         print ('cached orders for %s done in: %.2f norders: %d' %\
@@ -129,22 +157,77 @@ def features(symbol, date_string, venue = 'TSX',
         t1 = time.time()
         print ('doing book features')
 
-    bookfeatures = {}
-    
-    def worker(dt, verbose):
+    # get all consolidated book changes prior to tradingtimes[-1]
+    bkday = dailycbbo(symbol, date_string, tsunit)
+    bkday = utils.subsetbytime(bkday, tradingtimes[-1])
+
+    if verbose > 0:
+        print ('cached cbbo for %s done in: %.2f norders: %d' %\
+            (date_string, time.time()-t0, bkday.count()))
+
+
+    def covnamer(colname, aggfn):
+        k = '%s(%s)_trades' %\
+            (aggfn, colname)
+        return k
+
+    def worker(colname, aggfn, covnameverbose):
         if verbose > 0:
             t2 = time.time()
-        pdf = orderbook(utils.subsetbytime(dfday, dt), verbose=verbose-2).toPandas()
-        out = Book(pdf, verbose=verbose-2).features()
-        if verbose > 0:
-            print ('dt: %s done in: %.2f' % (dt, time.time()-t2))
-            # 5s per run
-        return out
 
-    bookfeatures = {}
-    for dt in tradingtimesdf:
-        fttemp = worker(dt, verbose-1)
-        bookfeatures[dt] = fttemp 
+        dftemp = bkday.groupBy('timed').agg({colname: aggfn})
+        dftemp = bkday.toPandas()
+
+        if verbose > 0:
+            print ('done in: %.2f' % (time.time()-t2))
+            if verbose > 1:
+                print (bkday.head(5))
+        return covname, dftemp
+
+
+    params = [
+        {'colname': colname, 
+        	'aggfn': aggfn, 
+        	'covname': covname,
+        	'verbose': verbose-1}
+        for colname, aggfn, covname in [
+           ('first_value', 'bid_price', 'maxbid'), 
+           ('first_value', 'ask_price', 'minask'), 
+           ('first_value', 'bid_price-ask_price', 'spread'),
+           ('first_value', 'mid_price', 'mid_price'),
+           ('first_value', 'weighted_price', 'weighted_price'),
+           ('sum', 'mid_price_diff2', 'mid_price_quadvar'),
+           ('mean', 'mid_price_diff2', 'mean(mid_price_diff2)'),
+           ('stddev', 'mid_price_diff2', 'stddev(mid_price_diff2)'),
+           ('mean', 'mid_price_logreturn', 'mean(mid_price_logreturn)'),
+           ('stddev', 'mid_price_logreturn', 'stddev(mid_price_logreturn)')
+           ('sum', 'weighted_price_diff2', 'weighted_price_quadvar'),
+           ('mean', 'weighted_price_diff2', 'mean(weighted_price_diff2)'),
+           ('stddev', 'weighted_price_diff2', 'stddev(weighted_price_diff2)'),
+           ('mean', 'weighted_price_logreturn', 'mean(weighted_price_logreturn)'),
+           ('stddev', 'weighted_price_logreturn', 'stddev(weighted_price_logreturn)')
+           ]
+    	]
+
+    resl = map(lambda x: worker(**x), params)
+    bookfeaturesbycovname = {k: v for k, v in resl}
+
+    # change to dt key    
+    dummydict = {}
+    for covname in bookfeaturesbycovname:
+        dummydict[covname] = None
+    bookfeatures = {dt: dummydict.copy() for dt in tradingtimesdf}    
+
+    for covname in bookfeaturesbycovname:
+        dftemp = bookfeaturesbycovname[covname]
+        for index, row in dftemp.iterrows():
+            dt, value = row[0], row[1]
+            dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
+            if dt in bookfeatures:
+                try:
+                    bookfeatures[dt][covname] = float(value)
+                except:
+                    print ('value: %s not converted!' % (value))
 
     if verbose > 0:
         print ('book features done in: %.2f' % (time.time()-t1))
