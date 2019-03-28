@@ -44,11 +44,11 @@ def dailycbbo(symbol, date_string, tsunit):
             time,
             date_trunc('%s', time) as timed,
             ROW_NUMBER() OVER (ORDER BY time) row
-        FROM cbbo 
+        FROM cbbo
         WHERE symbol = '%s' 
             AND date_string = '%s' 
         ORDER BY time ASC'''
-    sargs = (tsunit, symbol, date_string, venue)
+    sargs = (tsunit, symbol, date_string)
     dftemp = spark.sql(s%sargs)
     dftemp = dftemp.withColumnRenamed('(bid_price+ask_price)/2', 'mid_price')
     dftemp = dftemp.withColumnRenamed('((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size)', 'weighted_price')
@@ -256,7 +256,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
     
-    dfday.unpersist()
+    #dfday.unpersist()
     dfday = dfday.join(touchdf, "timed")
     dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
     dfday.cache()
