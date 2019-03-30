@@ -373,7 +373,8 @@ def features(symbol, date_string, venue = 'TSX',
         out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
 
     if verbose > 0:
-        print ('number of covariates in orders/cbbo:', len(out[tradingtimesdf[0]]))
+        print ('number of covariates in book:', len(out[tradingtimesdf[0]]['book']))
+        print ('number of covariates in orders:', len(out[tradingtimesdf[0]]['orders']))
         print ('all done in: %.2f' % (time.time()-t0))
 
     return out
