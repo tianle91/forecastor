@@ -131,7 +131,7 @@ def features(symbol, date_string, venue = 'TSX',
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue, tsunit)
     dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    #dfday.cache()
+    dfday.cache()
 
     if verbose > 0:
         print ('cached orders for %s done in: %.2f norders: %d' %\
@@ -143,6 +143,7 @@ def features(symbol, date_string, venue = 'TSX',
     tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
     tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
     tradingtimesdf.sort()
+    dfday.unpersist()
 
     if verbose > 1:
         print ('len(tradingtimesdf):', len(tradingtimesdf))
@@ -161,6 +162,7 @@ def features(symbol, date_string, venue = 'TSX',
     # get all consolidated book changes prior to tradingtimes[-1]
     bkday = dailycbbo(symbol, date_string, tsunit)
     bkday = utils.subsetbytime(bkday, tradingtimes[-1])
+    bkday.cache()
 
     if verbose > 0:
         print ('cached cbbo for %s done in: %.2f norders: %d' %\
@@ -218,6 +220,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     resl = map(lambda x: worker(**x), params)
     bookfeaturesbycovname = {k: v for k, v in resl}
+    bkday.unpersist()
 
 
     # --------------------------------------------------------------------------
@@ -238,6 +241,16 @@ def features(symbol, date_string, venue = 'TSX',
                     bookfeatures[dt][covname] = float(value)
                 except:
                     print ('value: %s not converted!' % (value))
+        # fill in missing values
+        dtprev = min(dftemp['timed'])
+        valueprev = dftemp.iloc[dftemp['timed'] == dtprev, 1]
+        for dt in tradingtimesdf:
+            value = bookfeatures[dt][covname]
+            if value is not None:
+                dtprev = dt
+                valueprev = value
+            else:
+                bookfeatures[dt][covname] = valueprev
 
     bookfeatures['maxbid'] = bookfeatures['bid_price']
     bookfeatures['minask'] = bookfeatures['ask_price']
@@ -263,7 +276,6 @@ def features(symbol, date_string, venue = 'TSX',
 
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
     
-    #dfday.unpersist()
     dfday = dfday.join(touchdf, "timed")
     dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
     dfday.cache()
@@ -319,6 +331,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     resl = map(lambda x: worker(**x), params)
     orderfeaturesbycovname = {k: v for k, v in resl}
+    dfday.unpersist()
 
     if verbose > 0:
         print ('orders features done in: %.2f' % (time.time()-t1))
@@ -354,7 +367,6 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('all done in: %.2f' % (time.time()-t0))
 
-    dfday.unpersist()
     return out
 
 
