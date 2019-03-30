@@ -26,7 +26,7 @@ import pandas as pd
 #timelenname = 'fullday'
 
 tsunit = 'MINUTE'
-print ('doing datelen:%s timelen:%s for symbol: %s' % (datelenname, timelenname, symbol))
+print ('doing datelen:%s timelen:%s tsunit:%s for symbol: %s' % (datelenname, timelenname, tsunit, symbol))
 
 
 # process arguments
@@ -87,6 +87,7 @@ exec(open('features_orders.py').read())
 def worker(dt, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/tl:%s_ts:%s_SYM:%s_dt:%s_orders.pickle.gz' % (timelenname, tsunit, symbol, dt)
     if overwrite or not os.path.isfile(fname):
+    	print ('caching fname: %s' % (fname))
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
     else:
@@ -104,6 +105,7 @@ exec(open('features_trades.py').read())
 def worker(dt, overwrite=False, verbose=1):
     fname = os.getcwd() + '/data/tl:%s_ts:%s_SYM:%s_dt:%s_trades.pickle.gz' % (timelenname, tsunit, symbol, dt)
     if overwrite or not os.path.isfile(fname):
+    	print ('caching fname: %s' % (fname))
         out = features(**getparams(dt, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
     else:
