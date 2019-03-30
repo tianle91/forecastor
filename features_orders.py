@@ -165,7 +165,7 @@ def features(symbol, date_string, venue = 'TSX',
     bkday.cache()
 
     if verbose > 0:
-        print ('cached cbbo for %s done in: %.2f norders: %d' %\
+        print ('cached cbbo for %s done in: %.2f nrows: %d' %\
             (date_string, time.time()-t0, bkday.count()))
 
 
@@ -209,11 +209,11 @@ def features(symbol, date_string, venue = 'TSX',
     def worker(colname, aggfn, covname, verbose):
         if verbose > 0:
             t2 = time.time()
-        dftemp = bkday.groupBy('timed').agg({colname: aggfn})
-        dftemp = bkday.toPandas().sort_values('timed')
+        dftemp = bkday.groupBy('timed').agg({colname: aggfn}).toPandas()
         if verbose > 0:
             print ('%s(%s) done in: %.2f' % (aggfn, colname, time.time()-t2))
             if verbose > 1:
+                print ('type(dftemp):', type(dftemp))
                 print ('first 5 rows of features')
                 print (dftemp.head(5))
         return covname, dftemp
@@ -306,8 +306,7 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = dfday
         if filstr != '':
             dftemp = dftemp.filter(filstr)
-        dftemp = dftemp.groupBy('timed').agg({colname: aggfn})
-        dftemp = dftemp.toPandas().sort_values('timed')
+        dftemp = dftemp.groupBy('timed').agg({colname: aggfn}).toPandas()
 
         if verbose > 0:
             print ('done in: %.2f' % (time.time()-t2))
