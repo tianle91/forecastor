@@ -42,7 +42,7 @@ def dailycbbo(symbol, date_string, tsunit):
             ask_price,
             ask_size,
             (bid_price+ask_price)/2 AS mid_price,
-            ((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size) AS weighted_price
+            ((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size) AS weighted_price,
             time,
             date_trunc('%s', time) AS timed,
             ROW_NUMBER() OVER (ORDER BY time) row
