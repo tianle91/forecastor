@@ -34,11 +34,11 @@ if timelenname == '1h':
     tstart_string = '10:00'
     tend_string = '11:00'
 elif timelenname == '2h':
-	tstart_string = '10:00'
-	tend_string = '12:00'
+    tstart_string = '10:00'
+    tend_string = '12:00'
 elif timelenname == 'morning':
-	tstart_string = '09:30'
-	tend_string = '12:00'
+    tstart_string = '09:30'
+    tend_string = '12:00'
 elif timelenname == 'fullday':
     tstart_string = '09:30'
     tend_string = '16:00'
@@ -49,7 +49,7 @@ if datelenname == '1wk':
 elif datelenname == '1mo':
     end = pd.to_datetime('2018-05-01')
 elif datelenname == '2mo':
-	end = pd.to_datetime('2018-06-01')
+    end = pd.to_datetime('2018-06-01')
 elif datelenname == '6mo':
     end = pd.to_datetime('2018-10-01')
 
