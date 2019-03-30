@@ -167,83 +167,83 @@ def features(symbol, date_string, venue = 'TSX',
             (date_string, time.time()-t0, bkday.count()))
 
 
-	params = [
-	    {'colname': colname, 
-	    	'aggfn': aggfn, 
-	    	'covname': colname if aggfn == 'first_value' else 'cbbo_%s(%s)' % (aggfn, colname),
-	    	'verbose': verbose-1}
-	    for aggfn, colname in [
-	       ('first_value', 'bid_price'), 
-	       ('first_value', 'ask_price'), 
-	       ('first_value', 'spread'),
-	       ('first_value', 'mid_price'),
-	       ('first_value', 'weighted_price'),
-	       ('last_value', 'bid_price'), 
-	       ('last_value', 'ask_price'),
-	       ('last_value', 'spread'),
-	       ('last_value', 'mid_price'),
-	       ('last_value', 'weighted_price'),
-	       ('sum', 'mid_price_diff2'),
-	       ('mean', 'mid_price_diff2'),
-	       ('stddev', 'mid_price_diff2'),
-	       ('mean', 'mid_price_logreturn'),
-	       ('stddev', 'mid_price_logreturn'),
-	       ('sum', 'weighted_price_diff2'),
-	       ('mean', 'weighted_price_diff2'),
-	       ('stddev', 'weighted_price_diff2'),
-	       ('mean', 'weighted_price_logreturn'),
-	       ('stddev', 'weighted_price_logreturn')
-	       ]
-		]
+    params = [
+        {'colname': colname, 
+            'aggfn': aggfn, 
+            'covname': colname if aggfn == 'first_value' else 'cbbo_%s(%s)' % (aggfn, colname),
+            'verbose': verbose-1}
+        for aggfn, colname in [
+           ('first_value', 'bid_price'), 
+           ('first_value', 'ask_price'), 
+           ('first_value', 'spread'),
+           ('first_value', 'mid_price'),
+           ('first_value', 'weighted_price'),
+           ('last_value', 'bid_price'), 
+           ('last_value', 'ask_price'),
+           ('last_value', 'spread'),
+           ('last_value', 'mid_price'),
+           ('last_value', 'weighted_price'),
+           ('sum', 'mid_price_diff2'),
+           ('mean', 'mid_price_diff2'),
+           ('stddev', 'mid_price_diff2'),
+           ('mean', 'mid_price_logreturn'),
+           ('stddev', 'mid_price_logreturn'),
+           ('sum', 'weighted_price_diff2'),
+           ('mean', 'weighted_price_diff2'),
+           ('stddev', 'weighted_price_diff2'),
+           ('mean', 'weighted_price_logreturn'),
+           ('stddev', 'weighted_price_logreturn')
+           ]
+        ]
 
-	if verbose > 0:
-	    print ('running features for cbbo')
-	    if verbose > 2:
-	        print ('feature params:')
-	        for paramtemp in params:
-	            print (paramtemp)
+    if verbose > 0:
+        print ('running features for cbbo')
+        if verbose > 2:
+            print ('feature params:')
+            for paramtemp in params:
+                print (paramtemp)
 
 
-	def worker(colname, aggfn, covname, verbose):
-	    if verbose > 0:
-	        t2 = time.time()
-	    dftemp = bkday.groupBy('timed').agg({colname: aggfn})
-	    dftemp = bkday.toPandas().sort_values('timed')
-	    if verbose > 0:
-	        print ('%s(%s) done in: %.2f' % (aggfn, colname, time.time()-t2))
-	        if verbose > 1:
-	            print ('first 5 rows of features')
-	            print (dftemp.head(5))
-	    return covname, dftemp
+    def worker(colname, aggfn, covname, verbose):
+        if verbose > 0:
+            t2 = time.time()
+        dftemp = bkday.groupBy('timed').agg({colname: aggfn})
+        dftemp = bkday.toPandas().sort_values('timed')
+        if verbose > 0:
+            print ('%s(%s) done in: %.2f' % (aggfn, colname, time.time()-t2))
+            if verbose > 1:
+                print ('first 5 rows of features')
+                print (dftemp.head(5))
+        return covname, dftemp
 
-	resl = map(lambda x: worker(**x), params)
-	bookfeaturesbycovname = {k: v for k, v in resl}
+    resl = map(lambda x: worker(**x), params)
+    bookfeaturesbycovname = {k: v for k, v in resl}
 
 
     # --------------------------------------------------------------------------
-	# change to dt key
+    # change to dt key
     # --------------------------------------------------------------------------
-	dummydict = {}
-	for covname in bookfeaturesbycovname:
-	    dummydict[covname] = None
-	bookfeatures = {dt: dummydict.copy() for dt in tradingtimesdf}    
+    dummydict = {}
+    for covname in bookfeaturesbycovname:
+        dummydict[covname] = None
+    bookfeatures = {dt: dummydict.copy() for dt in tradingtimesdf}    
 
-	for covname in bookfeaturesbycovname:
-	    dftemp = bookfeaturesbycovname[covname]
-	    for index, row in dftemp.iterrows():
-	        dt, value = row[0], row[1]
-	        dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
-	        if dt in bookfeatures:
-	            try:
-	                bookfeatures[dt][covname] = float(value)
-	            except:
-	                print ('value: %s not converted!' % (value))
+    for covname in bookfeaturesbycovname:
+        dftemp = bookfeaturesbycovname[covname]
+        for index, row in dftemp.iterrows():
+            dt, value = row[0], row[1]
+            dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
+            if dt in bookfeatures:
+                try:
+                    bookfeatures[dt][covname] = float(value)
+                except:
+                    print ('value: %s not converted!' % (value))
 
-	bookfeatures['maxbid'] = bookfeatures['bid_price']
-	bookfeatures['minask'] = bookfeatures['ask_price']
+    bookfeatures['maxbid'] = bookfeatures['bid_price']
+    bookfeatures['minask'] = bookfeatures['ask_price']
 
-	if verbose > 0:
-	    print ('book features done in: %.2f' % (time.time()-t1))
+    if verbose > 0:
+        print ('book features done in: %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
@@ -256,8 +256,8 @@ def features(symbol, date_string, venue = 'TSX',
 
     touchdf = spark.createDataFrame(
         [(utils.utctimestamp(dt), 
-        	bookfeatures[dt]['maxbid'], 
-        	bookfeatures[dt]['minask']) 
+            bookfeatures[dt]['maxbid'], 
+            bookfeatures[dt]['minask']) 
             for dt in bookfeatures],
         schema)
 
