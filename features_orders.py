@@ -134,7 +134,7 @@ def features(symbol, date_string, venue = 'TSX',
     dfday.cache()
 
     if verbose > 0:
-        print ('cached orders for %s done in: %.2f norders: %d' %\
+        print ('get orders for %s done in: %.2f norders: %d' %\
             (date_string, time.time()-t0, dfday.count()))
 
     # utc stuff is from dfday where there are observations
@@ -165,7 +165,7 @@ def features(symbol, date_string, venue = 'TSX',
     bkday.cache()
 
     if verbose > 0:
-        print ('cached cbbo for %s done in: %.2f nrows: %d' %\
+        print ('get cbbo for %s done in: %.2f nrows: %d' %\
             (date_string, time.time()-t1, bkday.count()))
 
 
@@ -267,7 +267,7 @@ def features(symbol, date_string, venue = 'TSX',
                 bookfeatures[dt][covname] = valueprev
 
     if verbose > 0:
-        print ('book features done in: %.2f' % (time.time()-t1))
+        print ('\tcbbo features done in: %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
@@ -297,7 +297,7 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     if verbose > 0:
         t2 = time.time()
-        print ('doing orders features')
+        print ('doing features for orders')
 
     def covnamer(colname, aggfn, ordtype, side, touch):
         k = 'orders_%s(%s)_for_type:%s_side:%s' %\
@@ -344,9 +344,7 @@ def features(symbol, date_string, venue = 'TSX',
     dfday.unpersist()
 
     if verbose > 0:
-        print ('orders features done in: %.2f' % (time.time()-t2))
-    if verbose > 1:
-        print ('number of covariates for new orders:', len(list(orderfeaturesbycovname.keys())))
+        print ('\torders features done in: %.2f' % (time.time()-t2))
 
 
     # change to dt key    
@@ -375,6 +373,7 @@ def features(symbol, date_string, venue = 'TSX',
         out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
 
     if verbose > 0:
+        print ('number of covariates in orders/cbbo:', len(out[tradingtimesdf[0]]))
         print ('all done in: %.2f' % (time.time()-t0))
 
     return out

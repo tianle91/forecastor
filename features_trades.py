@@ -91,7 +91,7 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     if verbose > 0:
         t1 = time.time()
-        print ('doing trades features')
+        print ('doing features for trades')
 
     def worker(colname, aggfn, verbose):
         k = covnamer(colname, aggfn)
@@ -137,9 +137,7 @@ def features(symbol, date_string, venue = 'TSX',
     dfday.unpersist()
 
     if verbose > 0:
-        print ('trades features done in: %.2f' % (time.time()-t1))
-    if verbose > 1:
-        print ('number of covariates for new trades:', len(list(tradesfeaturesbycovname.keys())))
+        print ('\ttrades features done in: %.2f' % (time.time()-t1))
 
 
     # change to dt key    
@@ -161,6 +159,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     
     if verbose > 0:
+        print ('number of covariates in trades:', len(tradesfeatures[tradingtimesdf[0]]))
         print ('all done in: %.2f' % (time.time()-t0))
 
     return tradesfeatures
