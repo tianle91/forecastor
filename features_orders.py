@@ -41,8 +41,10 @@ def dailycbbo(symbol, date_string, tsunit):
             bid_size,
             ask_price,
             ask_size,
+            (bid_price+ask_price)/2 AS mid_price,
+            ((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size) AS weighted_price
             time,
-            date_trunc('%s', time) as timed,
+            date_trunc('%s', time) AS timed,
             ROW_NUMBER() OVER (ORDER BY time) row
         FROM cbbo
         WHERE symbol = '%s' 
@@ -50,8 +52,6 @@ def dailycbbo(symbol, date_string, tsunit):
         ORDER BY time ASC'''
     sargs = (tsunit, symbol, date_string)
     dftemp = spark.sql(s%sargs)
-    dftemp = dftemp.withColumnRenamed('(bid_price+ask_price)/2', 'mid_price')
-    dftemp = dftemp.withColumnRenamed('((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size)', 'weighted_price')
     dftemp.createOrReplaceTempView('cbbotemp')
 
     s = '''SELECT
