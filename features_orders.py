@@ -208,7 +208,7 @@ def features(symbol, date_string, venue = 'TSX',
 	    if verbose > 0:
 	        t2 = time.time()
 	    dftemp = bkday.groupBy('timed').agg({colname: aggfn})
-	    dftemp = bkday.toPandas()
+	    dftemp = bkday.toPandas().sort_values('timed')
 	    if verbose > 0:
 	        print ('%s(%s) done in: %.2f' % (aggfn, colname, time.time()-t2))
 	        if verbose > 1:
@@ -219,7 +219,10 @@ def features(symbol, date_string, venue = 'TSX',
 	resl = map(lambda x: worker(**x), params)
 	bookfeaturesbycovname = {k: v for k, v in resl}
 
-	# change to dt key    
+
+    # --------------------------------------------------------------------------
+	# change to dt key
+    # --------------------------------------------------------------------------
 	dummydict = {}
 	for covname in bookfeaturesbycovname:
 	    dummydict[covname] = None
@@ -236,43 +239,16 @@ def features(symbol, date_string, venue = 'TSX',
 	            except:
 	                print ('value: %s not converted!' % (value))
 
+	bookfeatures['maxbid'] = bookfeatures['bid_price']
+	bookfeatures['minask'] = bookfeatures['ask_price']
+
 	if verbose > 0:
 	    print ('book features done in: %.2f' % (time.time()-t1))
-
-
-
-
-
-
-
-    resl = map(lambda x: worker(**x), params)
-    bookfeaturesbycovname = {k: v for k, v in resl}
-
-    # change to dt key    
-    dummydict = {}
-    for covname in bookfeaturesbycovname:
-        dummydict[covname] = None
-    bookfeatures = {dt: dummydict.copy() for dt in tradingtimesdf}    
-
-    for covname in bookfeaturesbycovname:
-        dftemp = bookfeaturesbycovname[covname]
-        for index, row in dftemp.iterrows():
-            dt, value = row[0], row[1]
-            dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
-            if dt in bookfeatures:
-                try:
-                    bookfeatures[dt][covname] = float(value)
-                except:
-                    print ('value: %s not converted!' % (value))
-
-    if verbose > 0:
-        print ('book features done in: %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
     # create touch dataframe
     # --------------------------------------------------------------------------
-
     schema = StructType([
         StructField("timedstr", StringType()),
         StructField("maxbid", DoubleType()),
@@ -319,7 +295,7 @@ def features(symbol, date_string, venue = 'TSX',
         if filstr != '':
             dftemp = dftemp.filter(filstr)
         dftemp = dftemp.groupBy('timed').agg({colname: aggfn})
-        dftemp = dftemp.toPandas()
+        dftemp = dftemp.toPandas().sort_values('timed')
 
         if verbose > 0:
             print ('done in: %.2f' % (time.time()-t2))
