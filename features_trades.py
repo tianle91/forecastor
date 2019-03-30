@@ -94,7 +94,6 @@ def features(symbol, date_string, venue = 'TSX',
         print ('doing features for trades')
 
     def worker(colname, aggfn, verbose):
-        k = covnamer(colname, aggfn)
         if verbose > 0:
             t2 = time.time()
 
