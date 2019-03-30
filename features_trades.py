@@ -93,11 +93,6 @@ def features(symbol, date_string, venue = 'TSX',
         t1 = time.time()
         print ('doing trades features')
 
-    def covnamer(colname, aggfn):
-        k = '%s(%s)_trades' %\
-            (aggfn, colname)
-        return k
-
     def worker(colname, aggfn, verbose):
         k = covnamer(colname, aggfn)
         if verbose > 0:
@@ -110,10 +105,12 @@ def features(symbol, date_string, venue = 'TSX',
             print ('done in: %.2f' % (time.time()-t2))
             if verbose > 1:
                 print (dftemp.head(5))
-        return k, dftemp
+        return 'trades_%s(%s)' % (aggfn, colname), dftemp
 
     params = [
-        {'colname': colname, 'aggfn': aggfn, 'verbose': verbose-1}
+        {'colname': colname, 
+            'aggfn': aggfn, 
+            'verbose': verbose-1}
         for colname, aggfn in [
            ('*', 'count'), 
            ('quantity', 'mean'), 
