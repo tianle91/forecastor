@@ -29,7 +29,7 @@ import pandas as pd
 #tsunit = 'SECOND'
 
 print ('doing datelen:%s timelen:%s tsunit:%s for symbol: %s' % (datelenname, timelenname, tsunit, symbol))
-# datelenname = '1mo', timelen: '1h', tsunit: 'MINUTE', done in 1.5h
+# datelenname = '1mo', timelen: '1h', tsunit: 'MINUTE', done in 1h
 
 
 # process arguments
