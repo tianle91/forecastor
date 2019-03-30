@@ -242,7 +242,8 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     bookfeatures[dt][covname] = float(value)
                 except:
-                    print ('value: %s not converted!' % (value))
+                    print ('covname: %s value: %s not converted!' % (covname, value))
+                    print (dftemp)
 
     # fill in missing values
     for covname in bookfeaturesbycovname:
@@ -362,7 +363,8 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     ordersfeatures[dt][covname] = float(value)
                 except:
-                    print ('value: %s not converted!' % (value))
+                    print ('covname: %s value: %s not converted!' % (covname, value))
+                    print (dftemp)
                 
 
     # --------------------------------------------------------------------------

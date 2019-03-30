@@ -154,7 +154,8 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     tradesfeatures[dt][covname] = float(value)
                 except:
-                    print ('value: %s not converted!' % (value))
+                    print ('covname: %s value: %s not converted!' % (covname, value))
+                    print (dftemp)
 
     
     if verbose > 0:
