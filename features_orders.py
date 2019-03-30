@@ -220,6 +220,8 @@ def features(symbol, date_string, venue = 'TSX',
 
     resl = map(lambda x: worker(**x), params)
     bookfeaturesbycovname = {k: v for k, v in resl}
+    bookfeaturesbycovname['maxbid'] = bookfeaturesbycovname['bid_price']
+    bookfeaturesbycovname['minask'] = bookfeaturesbycovname['ask_price']
     bkday.unpersist()
 
 
@@ -241,9 +243,21 @@ def features(symbol, date_string, venue = 'TSX',
                     bookfeatures[dt][covname] = float(value)
                 except:
                     print ('value: %s not converted!' % (value))
-        # fill in missing values
-        dtprev = min(dftemp['timed'])
-        valueprev = dftemp.iloc[dftemp['timed'] == dtprev, 1]
+
+    # fill in missing values
+    for covname in bookfeaturesbycovname:
+        dtprev = None
+        valueprev = None
+        hitfirst = False
+        # find first value
+        for dt in tradingtimesdf:
+            if not hitfirst:
+                value = bookfeatures[dt][covname]
+                if value is not None:
+                    dtprev = dt
+                    valueprev = value
+                    hitfirst = True
+        # fill missing
         for dt in tradingtimesdf:
             value = bookfeatures[dt][covname]
             if value is not None:
@@ -251,9 +265,6 @@ def features(symbol, date_string, venue = 'TSX',
                 valueprev = value
             else:
                 bookfeatures[dt][covname] = valueprev
-
-    bookfeatures['maxbid'] = bookfeatures['bid_price']
-    bookfeatures['minask'] = bookfeatures['ask_price']
 
     if verbose > 0:
         print ('book features done in: %.2f' % (time.time()-t1))
