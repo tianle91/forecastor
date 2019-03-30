@@ -98,8 +98,7 @@ def features(symbol, date_string, venue = 'TSX',
         if verbose > 0:
             t2 = time.time()
 
-        dftemp = dfday.groupBy('timed').agg({colname: aggfn})
-        dftemp = dftemp.toPandas().sort_values('timed')
+        dftemp = dfday.groupBy('timed').agg({colname: aggfn}).toPandas()
 
         if verbose > 0:
             print ('done in: %.2f' % (time.time()-t2))
@@ -130,11 +129,11 @@ def features(symbol, date_string, venue = 'TSX',
     tradesfeaturesbycovname = {k: v for k, v in resl}
 
     vwap = dfday.groupBy('timed').agg((F.sum(dfday.price*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['vwap'] = vwap.toPandas()
+    tradesfeaturesbycovname['trades_vwap'] = vwap.toPandas()
     vwquadvar = dfday.groupBy('timed').agg((F.sum(dfday.price_diff2*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['vwquadvar'] = vwquadvar.toPandas()
+    tradesfeaturesbycovname['trades_vwquadvar'] = vwquadvar.toPandas()
     vwlogreturn = dfday.groupBy('timed').agg((F.sum(dfday.logreturn*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['vwlogreturn'] = vwlogreturn.toPandas()
+    tradesfeaturesbycovname['trades_vwlogreturn'] = vwlogreturn.toPandas()
     dfday.unpersist()
 
     if verbose > 0:
