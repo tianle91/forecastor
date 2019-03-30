@@ -64,8 +64,8 @@ def dailycbbo(symbol, date_string, tsunit):
         LEFT JOIN cbbotemp b
             ON a.row = b.row-1'''
     dftemp = spark.sql(s)
-    dftemp = df.withColumn('mid_price_diff2', F.pow(dftemp.mid_price_diff, 2))
-    dftemp = df.withColumn('weighted_price_diff2', F.pow(dftemp.weighted_price_diff, 2))
+    dftemp = dftemp.withColumn('mid_price_diff2', F.pow(dftemp.mid_price_diff, 2))
+    dftemp = dftemp.withColumn('weighted_price_diff2', F.pow(dftemp.weighted_price_diff, 2))
     return dftemp
 
 
