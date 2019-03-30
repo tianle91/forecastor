@@ -25,8 +25,11 @@ import pandas as pd
 #timelenname = '1h'
 #timelenname = 'fullday'
 
-tsunit = 'MINUTE'
+#tsunit = 'MINUTE'
+#tsunit = 'SECOND'
+
 print ('doing datelen:%s timelen:%s tsunit:%s for symbol: %s' % (datelenname, timelenname, tsunit, symbol))
+# datelenname = '1mo', timelen: '1h', tsunit: 'MINUTE', done in 1.5h
 
 
 # process arguments
