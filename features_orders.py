@@ -166,7 +166,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         print ('cached cbbo for %s done in: %.2f nrows: %d' %\
-            (date_string, time.time()-t0, bkday.count()))
+            (date_string, time.time()-t1, bkday.count()))
 
 
     params = [
@@ -296,7 +296,7 @@ def features(symbol, date_string, venue = 'TSX',
     # orders features
     # --------------------------------------------------------------------------
     if verbose > 0:
-        t1 = time.time()
+        t2 = time.time()
         print ('doing orders features')
 
     def covnamer(colname, aggfn, ordtype, side, touch):
@@ -311,7 +311,7 @@ def features(symbol, date_string, venue = 'TSX',
         filstr = getordersfilstr(ordtype, side, touch)
         k = covnamer(colname, aggfn, ordtype, side, touch)
         if verbose > 0:
-            t2 = time.time()
+            t3 = time.time()
             print ('k:%s\nfilstr:%s' % (k, filstr))
 
         dftemp = dfday
@@ -320,7 +320,7 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = dftemp.groupBy('timed').agg({colname: aggfn}).toPandas()
 
         if verbose > 0:
-            print ('done in: %.2f' % (time.time()-t2))
+            print ('done in: %.2f' % (time.time()-t3))
             if verbose > 1:
                 print (dftemp.head(5))
         return k, dftemp
@@ -344,7 +344,7 @@ def features(symbol, date_string, venue = 'TSX',
     dfday.unpersist()
 
     if verbose > 0:
-        print ('orders features done in: %.2f' % (time.time()-t1))
+        print ('orders features done in: %.2f' % (time.time()-t2))
     if verbose > 1:
         print ('number of covariates for new orders:', len(list(orderfeaturesbycovname.keys())))
 
