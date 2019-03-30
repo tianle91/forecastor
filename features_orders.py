@@ -41,8 +41,9 @@ def dailycbbo(symbol, date_string, tsunit):
             bid_size,
             ask_price,
             ask_size,
-            (bid_price+ask_price)/2 AS mid_price,
-            ((ask_size*bid_price)+(bid_size*ask_price))/(ask_size+bid_size) AS weighted_price,
+            ask_price - bid_price AS spread,
+            (bid_price + ask_price) / 2 AS mid_price,
+            ((ask_size * bid_price) + (bid_size * ask_price)) / (ask_size + bid_size) AS weighted_price,
             time,
             date_trunc('%s', time) AS timed,
             ROW_NUMBER() OVER (ORDER BY time) row
@@ -59,7 +60,7 @@ def dailycbbo(symbol, date_string, tsunit):
             a.mid_price - b.mid_price AS mid_price_diff,
             LOG(a.mid_price/b.mid_price) AS mid_price_logreturn,
             a.weighted_price - b.weighted_price AS weighted_price_diff,
-            LOG(a.weighted_price/b.weighted_price) AS weighted_price_logtreturn
+            LOG(a.weighted_price/b.weighted_price) AS weighted_price_logreturn
         FROM cbbotemp a
         LEFT JOIN cbbotemp b
             ON a.row = b.row-1'''
@@ -166,53 +167,83 @@ def features(symbol, date_string, venue = 'TSX',
             (date_string, time.time()-t0, bkday.count()))
 
 
-    def covnamer(colname, aggfn):
-        k = '%s(%s)_trades' %\
-            (aggfn, colname)
-        return k
+	params = [
+	    {'colname': colname, 
+	    	'aggfn': aggfn, 
+	    	'covname': colname if aggfn == 'first_value' else 'cbbo_%s(%s)' % (aggfn, colname),
+	    	'verbose': verbose-1}
+	    for aggfn, colname in [
+	       ('first_value', 'bid_price'), 
+	       ('first_value', 'ask_price'), 
+	       ('first_value', 'spread'),
+	       ('first_value', 'mid_price'),
+	       ('first_value', 'weighted_price'),
+	       ('last_value', 'bid_price'), 
+	       ('last_value', 'ask_price'),
+	       ('last_value', 'spread'),
+	       ('last_value', 'mid_price'),
+	       ('last_value', 'weighted_price'),
+	       ('sum', 'mid_price_diff2'),
+	       ('mean', 'mid_price_diff2'),
+	       ('stddev', 'mid_price_diff2'),
+	       ('mean', 'mid_price_logreturn'),
+	       ('stddev', 'mid_price_logreturn'),
+	       ('sum', 'weighted_price_diff2'),
+	       ('mean', 'weighted_price_diff2'),
+	       ('stddev', 'weighted_price_diff2'),
+	       ('mean', 'weighted_price_logreturn'),
+	       ('stddev', 'weighted_price_logreturn')
+	       ]
+		]
 
-    def worker(colname, aggfn, covnameverbose):
-        if verbose > 0:
-            t2 = time.time()
-
-        dftemp = bkday.groupBy('timed').agg({colname: aggfn})
-        dftemp = bkday.toPandas()
-
-        if verbose > 0:
-            print ('done in: %.2f' % (time.time()-t2))
-            if verbose > 1:
-                print (bkday.head(5))
-        return covname, dftemp
+	if verbose > 0:
+	    print ('running features for cbbo')
+	    if verbose > 2:
+	        print ('feature params:')
+	        for paramtemp in params:
+	            print (paramtemp)
 
 
-    params = [
-        {'colname': colname, 
-        	'aggfn': aggfn, 
-        	'covname': covname,
-        	'verbose': verbose-1}
-        for colname, aggfn, covname in [
-           ('first_value', 'bid_price', 'maxbid'), 
-           ('first_value', 'ask_price', 'minask'), 
-           ('first_value', 'bid_price-ask_price', 'spread'),
-           ('first_value', 'mid_price', 'mid_price'),
-           ('first_value', 'weighted_price', 'weighted_price'),
-           ('last_value', 'bid_price', 'maxbid_last'), 
-           ('last_value', 'ask_price', 'minask_last'), 
-           ('last_value', 'bid_price-ask_price', 'spread_last'),
-           ('last_value', 'mid_price', 'mid_price_last'),
-           ('last_value', 'weighted_price', 'weighted_price_last'),
-           ('sum', 'mid_price_diff2', 'mid_price_quadvar'),
-           ('mean', 'mid_price_diff2', 'mean(mid_price_diff2)'),
-           ('stddev', 'mid_price_diff2', 'stddev(mid_price_diff2)'),
-           ('mean', 'mid_price_logreturn', 'mean(mid_price_logreturn)'),
-           ('stddev', 'mid_price_logreturn', 'stddev(mid_price_logreturn)')
-           ('sum', 'weighted_price_diff2', 'weighted_price_quadvar'),
-           ('mean', 'weighted_price_diff2', 'mean(weighted_price_diff2)'),
-           ('stddev', 'weighted_price_diff2', 'stddev(weighted_price_diff2)'),
-           ('mean', 'weighted_price_logreturn', 'mean(weighted_price_logreturn)'),
-           ('stddev', 'weighted_price_logreturn', 'stddev(weighted_price_logreturn)')
-           ]
-    	]
+	def worker(colname, aggfn, covname, verbose):
+	    if verbose > 0:
+	        t2 = time.time()
+	    dftemp = bkday.groupBy('timed').agg({colname: aggfn})
+	    dftemp = bkday.toPandas()
+	    if verbose > 0:
+	        print ('%s(%s) done in: %.2f' % (aggfn, colname, time.time()-t2))
+	        if verbose > 1:
+	            print ('first 5 rows of features')
+	            print (dftemp.head(5))
+	    return covname, dftemp
+
+	resl = map(lambda x: worker(**x), params)
+	bookfeaturesbycovname = {k: v for k, v in resl}
+
+	# change to dt key    
+	dummydict = {}
+	for covname in bookfeaturesbycovname:
+	    dummydict[covname] = None
+	bookfeatures = {dt: dummydict.copy() for dt in tradingtimesdf}    
+
+	for covname in bookfeaturesbycovname:
+	    dftemp = bookfeaturesbycovname[covname]
+	    for index, row in dftemp.iterrows():
+	        dt, value = row[0], row[1]
+	        dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
+	        if dt in bookfeatures:
+	            try:
+	                bookfeatures[dt][covname] = float(value)
+	            except:
+	                print ('value: %s not converted!' % (value))
+
+	if verbose > 0:
+	    print ('book features done in: %.2f' % (time.time()-t1))
+
+
+
+
+
+
 
     resl = map(lambda x: worker(**x), params)
     bookfeaturesbycovname = {k: v for k, v in resl}
@@ -270,7 +301,7 @@ def features(symbol, date_string, venue = 'TSX',
         print ('doing orders features')
 
     def covnamer(colname, aggfn, ordtype, side, touch):
-        k = '%s(%s)_for_type:%s_side:%s_orders' %\
+        k = 'orders_%s(%s)_for_type:%s_side:%s' %\
             (aggfn, colname, 
                 ordtype if ordtype is not None else 'All', 
                 side if side is not None else 'All')
