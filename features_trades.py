@@ -99,7 +99,7 @@ def features(symbol, date_string, venue = 'TSX',
             t2 = time.time()
 
         dftemp = dfday.groupBy('timed').agg({colname: aggfn})
-        dftemp = dftemp.toPandas()
+        dftemp = dftemp.toPandas().sort_values('timed')
 
         if verbose > 0:
             print ('done in: %.2f' % (time.time()-t2))
