@@ -62,13 +62,14 @@ elif datelenname == '6mo':
 # initialize parameters
 # ------------------------------------------------------------------------------
 dates = pd.date_range(start = start, end = end, freq = 'B')
+dates = [dt.strftime('%Y-%m-%d') for dt in dates]
 print ('dates:', dates)
 
 
-def getparams(dt, verbose):
+def getparams(dtstr, verbose):
     out = {
         'symbol': symbol,
-        'date_string': dt.strftime('%Y-%m-%d'),
+        'date_string': dtstr,
         'tsunit': tsunit, 
         'tstart_string': tstart_string, 
         'tend_string': tend_string, 
@@ -88,17 +89,17 @@ pickle.dump(dates, open(os.getcwd() + '/data/dl:%s_tl:%s_ts:%s_SYM:%s_dates.pick
 # ------------------------------------------------------------------------------
 exec(open('features_orders.py').read())
 
-def worker(dt, overwrite=False, verbose=1):
-    fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dt, symbol)
+def worker(dtstr, overwrite=False, verbose=1):
+    fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
     if overwrite or not os.path.isfile(fname):
         print ('caching fname: %s' % (fname))
-        out = features(**getparams(dt, verbose=verbose))
+        out = features(**getparams(dtstr, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
     else:
         print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
-for dt in dates:
-    temp =  worker(dt)
+for dtstr in dates:
+    temp =  worker(dtstr)
 
 
 # ------------------------------------------------------------------------------
@@ -106,14 +107,14 @@ for dt in dates:
 # ------------------------------------------------------------------------------
 exec(open('features_trades.py').read())
 
-def worker(dt, overwrite=False, verbose=1):
-    fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dt, symbol)
+def worker(dtstr, overwrite=False, verbose=1):
+    fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
     if overwrite or not os.path.isfile(fname):
         print ('caching fname: %s' % (fname))
-        out = features(**getparams(dt, verbose=verbose))
+        out = features(**getparams(dtstr, verbose=verbose))
         pickle.dump(out, gzip.open(fname, 'wb'))
     else:
         print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
-for dt in dates:
-    temp =  worker(dt)
+for dtstr in dates:
+    temp =  worker(dtstr)
