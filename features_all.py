@@ -30,6 +30,7 @@ import pandas as pd
 
 print ('doing datelen:%s timelen:%s tsunit:%s for symbol: %s' % (datelenname, timelenname, tsunit, symbol))
 # datelenname = '1mo', timelen: '1h', tsunit: 'MINUTE', done in 1h
+# datelenname = '1mo', timelen: '1h', tsunit: 'SECOND', done in 1.5h
 
 
 # process arguments
@@ -88,7 +89,7 @@ pickle.dump(dates, open(os.getcwd() + '/data/dl:%s_tl:%s_ts:%s_SYM:%s_dates.pick
 exec(open('features_orders.py').read())
 
 def worker(dt, overwrite=False, verbose=1):
-    fname = os.getcwd() + '/data/ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (tsunit, dt, symbol)
+    fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dt, symbol)
     if overwrite or not os.path.isfile(fname):
         print ('caching fname: %s' % (fname))
         out = features(**getparams(dt, verbose=verbose))
@@ -106,7 +107,7 @@ for dt in dates:
 exec(open('features_trades.py').read())
 
 def worker(dt, overwrite=False, verbose=1):
-    fname = os.getcwd() + '/data/ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (tsunit, dt, symbol)
+    fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dt, symbol)
     if overwrite or not os.path.isfile(fname):
         print ('caching fname: %s' % (fname))
         out = features(**getparams(dt, verbose=verbose))
