@@ -7,8 +7,7 @@ def flattendic_orders(d):
     out = None
     if d['orders'] is not None:
         out = [d['orders'][k] for k in d['orders']]
-        out += [d['book'][k] if not (k == 'prices') else None for k in d['book']]
-        out += [d['book']['prices'][k] for k in d['book']['prices']]
+        out += [d['book'][k] for k in d['book']]
     return out
     
 def flattendic_trades(d):
@@ -38,15 +37,15 @@ def toflatlist(flatords, flattrades):
 
 class TXLoader(object):
 
-    def __init__(self, datelenname, timelenname, symbol, verbose=0):
-        dates = pickle.load(open(os.getcwd() + '/data/dl:%s_tl:%s_SYM:%s_dates.pickle' % (datelenname, timelenname, symbol), 'rb'))
+    def __init__(self, datelenname, timelenname, tsunit, symbol, verbose=0):
+        dates = pickle.load(open(os.getcwd() + '/data/dl:%s_tl:%s_ts:%s_SYM:%s_dates.pickle' % (datelenname, timelenname, tsunit, symbol), 'rb'))
         self.dates = dates
         self.orders = {}
         self.trades = {}
         for dt in dates:
-            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_orders.pickle.gz' % (timelenname, symbol, dt)
+            fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
             self.orders[dt] = pickle.load(gzip.open(fname, 'rb'))
-            fname = os.getcwd() + '/data/%s_SYM:%s_dt:%s_trades.pickle.gz' % (timelenname, symbol, dt)
+            fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
             self.trades[dt] = pickle.load(gzip.open(fname, 'rb'))
         self.verbose = verbose
 
