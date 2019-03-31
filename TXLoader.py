@@ -21,8 +21,7 @@ def flattencovname_orders(d):
     out = []
     if d['orders'] is not None:
         out = ['orders:' + k for k in d['orders']]
-        out += ['book:' + k if not (k == 'prices') else None for k in d['book']]
-        out += ['prices:' + k for k in d['book']['prices']]
+        out += ['book:' for k in d['book']]
     return out
 
 def flattencovname_trades(d):
@@ -62,6 +61,7 @@ class TXLoader(object):
     def getxm(self, nanis=0):
 
         alldays = list(self.orders.keys())
+        alldays = [pd.to_datetime(dtstr) for dtstr in alldays]
         alldays.sort()
 
         def workerinday(dt, dtinday):
