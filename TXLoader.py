@@ -42,7 +42,7 @@ class TXLoader(object):
         self.dates = dates
         self.orders = {}
         self.trades = {}
-        for dt in dates:
+        for dtstr in dates:
             fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
             self.orders[dt] = pickle.load(gzip.open(fname, 'rb'))
             fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
