@@ -20,15 +20,15 @@ def flattendic_trades(d):
 
 def flattencovname_orders(d):
     out = []
-    if d['orders'] is not None:
-        out = ['orders:' + k for k in d['orders']]
-        out += ['book:' for k in d['book']]
+    if d['orders'] is not None and d['book'] is not None:
+        out = list(d['orders'].keys())
+        out += list(d['book'].keys())
     return out
 
 def flattencovname_trades(d):
     out = []
     if d is not None:
-        out = ['trades:' + k for k in d]
+        out = list(d.keys())
     return out
 
 def toflatlist(flatords, flattrades):
