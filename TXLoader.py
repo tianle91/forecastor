@@ -44,9 +44,9 @@ class TXLoader(object):
         self.trades = {}
         for dtstr in dates:
             fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
-            self.orders[dt] = pickle.load(gzip.open(fname, 'rb'))
+            self.orders[dtstr] = pickle.load(gzip.open(fname, 'rb'))
             fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
-            self.trades[dt] = pickle.load(gzip.open(fname, 'rb'))
+            self.trades[dtstr] = pickle.load(gzip.open(fname, 'rb'))
         self.verbose = verbose
 
 
