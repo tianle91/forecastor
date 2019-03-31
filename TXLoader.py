@@ -65,18 +65,18 @@ class TXLoader(object):
         alldays = [pd.to_datetime(dtstr) for dtstr in alldays]
         alldays.sort()
 
-        def workerinday(dt, dtinday):
-            flatords = self.orders[dt][dtinday]
-            flattrades = self.trades[dt][dtinday]
+        def workerinday(dtstr, dtinday):
+            flatords = self.orders[dtstr][dtinday]
+            flattrades = self.trades[dtstr][dtinday]
             return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
 
-        def worker(dt):
-            alltimesinday = list(self.orders[dt].keys())
+        def worker(dtstr):
+            alltimesinday = list(self.orders[dtstr].keys())
             alltimesinday.sort()
-            resl = [workerinday(dt, dtinday) for dtinday in alltimesinday]
+            resl = [workerinday(dtstr, dtinday) for dtinday in alltimesinday]
             return [l for l in resl if l is not None]
 
-        resll = [worker(dt) for dt in alldays]
+        resll = [worker(dt.strftime('%Y-%m-%d')) for dt in alldays]
         resll = [l for l in resll if len(l) > 0]
         if self.verbose > 0:
             print ('byday: %s:\nlen(resll): %s' % (byday, len(resll)))
