@@ -58,31 +58,36 @@ covtypeindiceslen = np.diff((0,)+covtypeindices)
 print (covtypeindiceslen)
 # 48, 22, 14
 
-def viz_covariates(xms):
+def viz_covariates(xms, covtypeindices=None):
     ntime, ncov = xms.shape
     fig, ax = plt.subplots(1, figsize=(ntime/10, ncov/10))
     ax.imshow(np.transpose(xms), aspect=ntime/ncov)
-    
-    # box for orders features
-    ax.add_patch(patches.Rectangle((-.5, -.5), ntime+.5, covtypeindiceslen[0], 
-        linewidth=2, edgecolor=(1,0,0,1), facecolor='none'))
-    # box for book features
-    ax.add_patch(patches.Rectangle((-.5, covtypeindices[0]-.5), ntime+.5, covtypeindiceslen[1], 
-        linewidth=2, edgecolor=(1,0,0,1), facecolor='none'))
-    # box for trades features
-    ax.add_patch(patches.Rectangle((-.5, covtypeindices[1]-.5), ntime+.5, covtypeindiceslen[2], 
-        linewidth=2, edgecolor=(1,0,0,1), facecolor='none'))
-    # box for additional features
-    ax.add_patch(patches.Rectangle((-.5, covtypeindices[2]-.5), ntime+.5, 99, 
-        linewidth=2, edgecolor=(1,0,0,1), facecolor='none'))
 
+    if covtypeindices is not None:
+        # draw rectangles for covariate types
+        rctparamsl = [
+            {'xy': xytemp, 
+                'width': widthtemp, 
+                'height': heighttemp,
+                'linewidth': 2, 
+                'edgecolor': (1,0,0), 
+                'facecolor': 'none'}
+            for xytemp, widthtemp, heighttemp in [
+                ((-.5, -.5), ntime+.5, covtypeindiceslen[0]),
+                ((-.5, covtypeindices[0]-.5), ntime+.5, covtypeindiceslen[1]),
+                ((-.5, covtypeindices[1]-.5), ntime+.5, covtypeindiceslen[2]),
+                ((-.5, covtypeindices[2]-.5), ntime+.5, 99)]
+        ]
+        for rctparamstemp in rctparamsl:
+            ax.add_patch(patches.Rectangle(**rctparamstemp))
+            
     ax.set_xlabel('time')
     ax.set_ylabel('covariates')
     plt.show()
 
 # visualize transformed covariates
 for i in range(1):
-    viz_covariates(scaler.transform(xm[i, :, :]))
+    viz_covariates(scaler.transform(xm[i, :, :]), covtypeindices)
 
 
 ## -----------------------------------------------------------------------------
