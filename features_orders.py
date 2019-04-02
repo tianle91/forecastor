@@ -271,7 +271,8 @@ def features(symbol, date_string, venue = 'TSX',
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
     dfday = dfday.join(touchdf, "timed")
     dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
-    
+    dfday.cache()
+
     if verbose > 0:
         t5 = time.time()
         print ('orders: join with touchdf done in: %.2f' % (time.time()-t4))
@@ -317,7 +318,6 @@ def features(symbol, date_string, venue = 'TSX',
         for touch in [False, True]
     ]
 
-    dfday.cache()
     resl = map(lambda x: worker(**x), params)
     dfday.unpersist()
 
