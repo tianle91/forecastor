@@ -308,7 +308,7 @@ def features(symbol, date_string, venue = 'TSX',
             dftemp = dftemp.filter(filstr)
         aggparams = {'*': 'COUNT', 'ABS(book_change)': 'sum'}
         dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
-        dftemp = dftemp.rename(columns={'COUNT(*)': 'number', 'SUM(ABS(book_change))': 'volume'})
+        dftemp = dftemp.rename(columns={'count(1)': 'number', 'sum(ABS(book_change))': 'volume'})
 
         if verbose > 0:
             print ('orders: groupby done in: %.2f' % (time.time()-ttemp))
