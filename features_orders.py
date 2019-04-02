@@ -295,7 +295,7 @@ def features(symbol, date_string, venue = 'TSX',
     def worker(ordtype, side, touch, verbose):
         if verbose > 0:
             ttemp = time.time()
-            print ('filter ordtype: %s, side: %s, touch: %s' % (ordtype, side, touch))
+            print ('orders: filter ordtype: %s, side: %s, touch: %s' % (ordtype, side, touch))
 
         filstr = getordersfilstr(ordtype, side, touch)
         k = covnamer(ordtype, side, touch)
