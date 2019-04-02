@@ -53,30 +53,7 @@ def features(symbol, date_string, venue = 'TSX',
     '''
     # set up key for output dictionary, trading times is in US/Eastern
     freq = '1H' if tsunit == 'HOUR' else '1min' if tsunit == 'MINUTE' else '1S' if tsunit == 'SECOND' else None
-    tradingtimes = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
-    tradingtimes.sort()
-
-    
-    # --------------------------------------------------------------------------
-    # get all orders in day
-    # --------------------------------------------------------------------------
-    if verbose > 0:
-        t0 = time.time()
-
-    # get all transactions prior to tradingtimes[-1]
-    dfday = dailytrades(symbol, date_string, tsunit)
-    dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    dfday.cache()
-
-    if verbose > 0:
-        print ('cached trades for %s done in: %.2f ntrades: %d' %\
-            (date_string, time.time()-t0, dfday.count()))
-
-    # utc stuff is from dfday where there are observations
-    tradingtimesdf = dfday.select('timed').distinct().toPandas()
-    tradingtimesdf = [val for index, val in tradingtimesdf['timed'].iteritems()]
-    tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
-    tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
+    tradingtimesdf = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
     tradingtimesdf.sort()
 
     if verbose > 1:
@@ -85,19 +62,34 @@ def features(symbol, date_string, venue = 'TSX',
             print ('trading times in dfday in US/Eastern:')
             print ([str(dt) for dt in tradingtimesdf])
 
+    
+    # --------------------------------------------------------------------------
+    # get all trades in day
+    # --------------------------------------------------------------------------
+    if verbose > 0:
+        t0 = time.time()
+
+    # get all transactions prior to tradingtimes[-1]
+    dfday = dailytrades(symbol, date_string, tsunit)
+    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
+
+    if verbose > 0:
+        t1 = time.time()
+        print ('get trades for %s done in: %.2f ntrades: %d' %\
+            (date_string, time.time()-t0, dfday.count()))
+
 
     # --------------------------------------------------------------------------
     # trades features
     # --------------------------------------------------------------------------
     if verbose > 0:
-        t1 = time.time()
         print ('doing features for trades')
 
     def worker(colname, aggfn, verbose):
         if verbose > 0:
             t2 = time.time()
 
-        dftemp = dfday.groupBy('timed').agg({colname: aggfn}).toPandas()
+        
 
         if verbose > 0:
             print ('done in: %.2f' % (time.time()-t2))
@@ -107,8 +99,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     params = [
         {'colname': colname, 
-            'aggfn': aggfn, 
-            'verbose': verbose-1}
+            'aggfn': aggfn}
         for colname, aggfn in [
            ('*', 'count'), 
            ('quantity', 'mean'), 
@@ -124,13 +115,25 @@ def features(symbol, date_string, venue = 'TSX',
            ('logreturn', 'stddev')]
     ]
 
-    resl = map(lambda x: worker(**x), params)
-    tradesfeaturesbycovname = {k: v for k, v in resl}
+    aggparams = {partemp['colname']: partemp['aggfn'] for partemp in params}
 
+    dfday.cache()
+    dfdaygrouped = dfday.groupBy('timed').agg(aggparams).toPandas()
+    renameparams = {'trades_%s' % (colname) if colname != 'timed' for colname in dfdaygrouped}
+    dfdaygrouped = dfdaygrouped.rename(columns=renameparams)
+    # collect by covariate name
+    tradesfeaturesbycovname = {k: v for k, v in resl}
+    for colname in dfdaygrouped:
+        if colname != 'timed':
+            tradesfeaturesbycovname[colname] = dfdaygrouped[['timed', colname]]
+    # additional covariates
+    ## vwap
     vwap = dfday.groupBy('timed').agg((F.sum(dfday.price*dfday.quantity)/F.sum(dfday.quantity)))
     tradesfeaturesbycovname['trades_vwap'] = vwap.toPandas()
+    ## vol-weighted quad variation
     vwquadvar = dfday.groupBy('timed').agg((F.sum(dfday.price_diff2*dfday.quantity)/F.sum(dfday.quantity)))
     tradesfeaturesbycovname['trades_vwquadvar'] = vwquadvar.toPandas()
+    ## vol-weighted log return
     vwlogreturn = dfday.groupBy('timed').agg((F.sum(dfday.logreturn*dfday.quantity)/F.sum(dfday.quantity)))
     tradesfeaturesbycovname['trades_vwlogreturn'] = vwlogreturn.toPandas()
     dfday.unpersist()
