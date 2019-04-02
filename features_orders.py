@@ -132,22 +132,21 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     if verbose > 0:
         t0 = time.time()
-        print ('doing book features')
+        print ('doing cbbo features')
 
     # get all consolidated book changes prior to tradingtimes[-1]
     bkday = dailycbbo(symbol, date_string, tsunit)
     bkday = utils.subsetbytime(bkday, tradingtimesdf[-1])
     if verbose > 0:
         t1 = time.time()
-        print ('get cbbo for %s done in: %.2f nrows: %d' %\
+        print ('cbbo: df %s done in: %.2f nrows: %d' %\
             (date_string, time.time()-t0, bkday.count()))
 
 
     params = [
         {'colname': colname, 
             'aggfn': aggfn, 
-            'covname': colname if aggfn == 'first_value' else 'cbbo_%s(%s)' % (aggfn, colname),
-            'verbose': verbose-1}
+            'covname': colname if aggfn == 'first_value' else 'cbbo_%s(%s)' % (aggfn, colname)}
         for aggfn, colname in [
            ('first_value', 'bid_price'), 
            ('first_value', 'ask_price'), 
@@ -168,9 +167,9 @@ def features(symbol, date_string, venue = 'TSX',
         ]
 
     if verbose > 0:
-        print ('running features for cbbo')
+        print ('cbbo: features')
     if verbose > 2:
-        print ('feature params:')
+        print ('cbbo: features params:')
         for paramtemp in params:
             print (paramtemp)
 
@@ -196,7 +195,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         t2 = time.time()
-        print ('bookfeaturesbycovname for cbbo collected in %s' % (time.time()-t1))
+        print ('cbbo: bookfeaturesbycovname collected in %.2f' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
@@ -242,7 +241,8 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         t3 = time.time()
-        print ('\tcbbo features done in: %.2f' % (time.time()-t2))
+        print ('cbbo: change to dt key done in: %.2f' % (t3-t2))
+        print ('cbbo: all done in: %.2f' % (t3-t0))
 
 
     # --------------------------------------------------------------------------
@@ -253,7 +253,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         t4 = time.time()
-        print ('get orders for %s done in: %.2f norders: %d' %\
+        print ('orders: df %s done in: %.2f norders: %d' %\
             (date_string, time.time()-t3, dfday.count()))
 
     schema = StructType([
@@ -274,7 +274,7 @@ def features(symbol, date_string, venue = 'TSX',
     
     if verbose > 0:
         t5 = time.time()
-        print ('dfday.join(touchdf) done in: %.2f' % (time.time()-t4))
+        print ('orders: join with touchdf done in: %.2f' % (time.time()-t4))
 
 
     # --------------------------------------------------------------------------
@@ -288,6 +288,7 @@ def features(symbol, date_string, venue = 'TSX',
         return k
 
     def worker(ordtype, side, touch, verbose):
+        ttemp = time.time()
         filstr = getordersfilstr(ordtype, side, touch)
         k = covnamer(ordtype, side, touch)
         if verbose > 0:
@@ -301,7 +302,7 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
 
         if verbose > 0:
-            print ('done in: %.2f' % (time.time()-t3))
+            print ('orders: ordtype: %s, side: %s, touch: %s done in: %.2f' % (ordtype, side, touch, time.time()-ttemp))
             if verbose > 1:
                 print (dftemp.head(5))
         return k, dftemp
@@ -310,8 +311,7 @@ def features(symbol, date_string, venue = 'TSX',
         {'ordtype': ordtype, 
             'side': side, 
             'touch': touch,
-            'verbose': verbose-1
-        }
+            'verbose': verbose-1}
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for touch in [False, True]
@@ -328,7 +328,7 @@ def features(symbol, date_string, venue = 'TSX',
                 orderfeaturesbycovname[ktemp+'_'+colname] = groupeddftemp[['timed', colname]]
 
     if verbose > 0:
-        print ('\torders features done in: %.2f' % (time.time()-t5))
+        print ('orders: orderfeaturesbycovname done in: %.2f' % (time.time()-t5))
 
 
     # change to dt key    
@@ -347,7 +347,10 @@ def features(symbol, date_string, venue = 'TSX',
                     ordersfeatures[dt][covname] = float(value)
                 except:
                     pass
-                
+              
+    if verbose > 0:
+        print ('orders: all done in: %.2f' % (time.time()-t4))
+
 
     # --------------------------------------------------------------------------
     # collect and return
