@@ -122,32 +122,6 @@ def features(symbol, date_string, venue = 'TSX',
     tradingtimesdf = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
     tradingtimesdf.sort()
 
-    
-    # --------------------------------------------------------------------------
-    # get all orders in day
-    # --------------------------------------------------------------------------
-    if verbose > 0:
-        t0 = time.time()
-
-    # get all transactions prior to tradingtimes[-1]
-    dfday = dailyorders(symbol, date_string, venue, tsunit)
-    #dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
-    if verbose > 0:
-        print ('get orders for %s done in: %.2f norders: %d' %\
-            (date_string, time.time()-t0, dfday.count()))
-
-    # # utc stuff is from dfday where there are observations
-    # dfday.cache()
-    # tradingtimesdf = dfday.select('timed').distinct().toPandas()
-    # dfday.unpersist()
-
-    # tradingtimesdf = [val for index, val in tradingtimesdf['timed'].iteritems()]
-    # tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
-    # tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
-    # tradingtimesdf.sort()
-    
-
     if verbose > 1:
         print ('len(tradingtimesdf):', len(tradingtimesdf))
         if verbose > 2:
@@ -182,11 +156,6 @@ def features(symbol, date_string, venue = 'TSX',
            ('first_value', 'spread'),
            ('first_value', 'mid_price'),
            ('first_value', 'weighted_price'),
-           #('last_value', 'bid_price'), 
-           #('last_value', 'ask_price'),
-           #('last_value', 'spread'),
-           #('last_value', 'mid_price'),
-           #('last_value', 'weighted_price'),
            ('sum', 'mid_price_diff2'),
            ('mean', 'mid_price_diff2'),
            ('stddev', 'mid_price_diff2'),
@@ -221,7 +190,7 @@ def features(symbol, date_string, venue = 'TSX',
         print (bkdaygrouped.head())
 
     renameparams = {'%s(%s)' % (partemp['aggfn'], partemp['colname']): partemp['covname'] for partemp in params}
-    bkdaygrouped = bkdaygrouped.rename(renameparams)
+    bkdaygrouped = bkdaygrouped.rename(columns=renameparams)
     bkdaygrouped['maxbid'] = bkdaygrouped['bid_price']
     bkdaygrouped['minask'] = bkdaygrouped['ask_price']
 
@@ -251,8 +220,6 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     bookfeatures[dt][covname] = float(value)
                 except:
-                    #print ('covname: %s value: %s not converted!' % (covname, value))
-                    #print (row)
                     pass
 
     # fill in missing values
@@ -284,6 +251,16 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     # create touch dataframe
     # --------------------------------------------------------------------------
+    if verbose > 0:
+        t0 = time.time()
+
+    # get all transactions prior to tradingtimes[-1]
+    dfday = dailyorders(symbol, date_string, venue, tsunit)
+    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
+    if verbose > 0:
+        print ('get orders for %s done in: %.2f norders: %d' %\
+            (date_string, time.time()-t0, dfday.count()))
+
     schema = StructType([
         StructField("timedstr", StringType()),
         StructField("maxbid", DoubleType()),
@@ -297,7 +274,6 @@ def features(symbol, date_string, venue = 'TSX',
         schema)
 
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
-    
     dfday = dfday.join(touchdf, "timed")
     dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
     
@@ -376,8 +352,6 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     ordersfeatures[dt][covname] = float(value)
                 except:
-                    #print ('covname: %s value: %s not converted!' % (covname, value))
-                    #print (row)
                     pass
                 
 
