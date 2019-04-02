@@ -131,7 +131,8 @@ def features(symbol, date_string, venue = 'TSX',
 
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue, tsunit)
-    dfday = utils.subsetbytime(dfday, tradingtimes[-1])
+    #dfday = utils.subsetbytime(dfday, tradingtimes[-1])
+    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
     if verbose > 0:
         print ('get orders for %s done in: %.2f norders: %d' %\
             (date_string, time.time()-t0, dfday.count()))
@@ -163,7 +164,8 @@ def features(symbol, date_string, venue = 'TSX',
 
     # get all consolidated book changes prior to tradingtimes[-1]
     bkday = dailycbbo(symbol, date_string, tsunit)
-    bkday = utils.subsetbytime(bkday, tradingtimes[-1])
+    #bkday = utils.subsetbytime(bkday, tradingtimes[-1])
+    bkday = utils.subsetbytime(bkday, tradingtimesdf[-1])
     if verbose > 0:
         print ('get cbbo for %s done in: %.2f nrows: %d' %\
             (date_string, time.time()-t1, bkday.count()))
