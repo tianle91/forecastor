@@ -130,19 +130,20 @@ def features(symbol, date_string, venue = 'TSX',
     # get all transactions prior to tradingtimes[-1]
     dfday = dailyorders(symbol, date_string, venue, tsunit)
     dfday = utils.subsetbytime(dfday, tradingtimes[-1])
-    dfday.cache()
-
     if verbose > 0:
         print ('get orders for %s done in: %.2f norders: %d' %\
             (date_string, time.time()-t0, dfday.count()))
 
     # utc stuff is from dfday where there are observations
+    dfday.cache()
     tradingtimesdf = dfday.select('timed').distinct().toPandas()
+    dfday.unpersist()
+
     tradingtimesdf = [val for index, val in tradingtimesdf['timed'].iteritems()]
     tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
     tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
     tradingtimesdf.sort()
-    dfday.unpersist()
+    
 
     if verbose > 1:
         print ('len(tradingtimesdf):', len(tradingtimesdf))
@@ -161,8 +162,6 @@ def features(symbol, date_string, venue = 'TSX',
     # get all consolidated book changes prior to tradingtimes[-1]
     bkday = dailycbbo(symbol, date_string, tsunit)
     bkday = utils.subsetbytime(bkday, tradingtimes[-1])
-    bkday.cache()
-
     if verbose > 0:
         print ('get cbbo for %s done in: %.2f nrows: %d' %\
             (date_string, time.time()-t1, bkday.count()))
@@ -207,7 +206,9 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         t2 = time.time()
 
-    aggparams = {partemp['aggfn']: partemp['colname'] for partemp in params}
+    aggparams = {partemp['colname']: partemp['aggfn'] for partemp in params}
+
+    bkday.cache()
     bkdaygrouped = bkday.groupBy('timed').agg(aggparams).toPandas()
     bkday.unpersist()
 
@@ -291,7 +292,7 @@ def features(symbol, date_string, venue = 'TSX',
     
     dfday = dfday.join(touchdf, "timed")
     dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
-    dfday.cache()
+    
 
 
     # --------------------------------------------------------------------------
@@ -301,17 +302,16 @@ def features(symbol, date_string, venue = 'TSX',
         t2 = time.time()
         print ('doing features for orders')
 
-    def covnamer(colname, aggfn, ordtype, side, touch):
-        k = 'orders_%s(%s)_for_type:%s_side:%s' %\
-            (aggfn, colname, 
-                ordtype if ordtype is not None else 'All', 
+    def covnamer(ordtype, side, touch):
+        k = 'orders_type:%s_side:%s' %\
+            (ordtype if ordtype is not None else 'All', 
                 side if side is not None else 'All')
         k += '_at_touch' if touch else ''
         return k
 
-    def worker(colname, aggfn, ordtype, side, touch, verbose):
+    def worker(ordtype, side, touch, verbose):
         filstr = getordersfilstr(ordtype, side, touch)
-        k = covnamer(colname, aggfn, ordtype, side, touch)
+        k = covnamer(ordtype, side, touch)
         if verbose > 0:
             t3 = time.time()
             print ('k:%s\nfilstr:%s' % (k, filstr))
@@ -319,7 +319,8 @@ def features(symbol, date_string, venue = 'TSX',
         dftemp = dfday
         if filstr != '':
             dftemp = dftemp.filter(filstr)
-        dftemp = dftemp.groupBy('timed').agg({colname: aggfn}).toPandas()
+        aggparams = {'*': 'COUNT', 'ABS(book_change)': 'sum'}
+        dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
 
         if verbose > 0:
             print ('done in: %.2f' % (time.time()-t3))
@@ -328,22 +329,25 @@ def features(symbol, date_string, venue = 'TSX',
         return k, dftemp
 
     params = [
-        {'colname': colname, 
-            'aggfn': aggfn, 
-            'ordtype': ordtype, 
+        {'ordtype': ordtype, 
             'side': side, 
             'touch': touch,
             'verbose': verbose-1
         }
-        for colname, aggfn in [('*', 'count'), ('ABS(book_change)', 'sum')]
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for touch in [False, True]
     ]
 
+    dfday.cache()
     resl = map(lambda x: worker(**x), params)
-    orderfeaturesbycovname = {k: v for k, v in resl}
     dfday.unpersist()
+
+    orderfeaturesbycovname = {}
+    for ktemp, groupeddftemp in resl:
+        for colname in groupeddftemp:
+            if colname != 'timed':
+                orderfeaturesbycovname[ktemp+'_'+colname] = groupeddftemp[['timed', colname]]
 
     if verbose > 0:
         print ('\torders features done in: %.2f' % (time.time()-t2))
