@@ -98,8 +98,11 @@ def worker(dtstr, overwrite=False, verbose=1):
     else:
         print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
+dtdextemp = 0
 for dtstr in dates:
+    print ('%s/%s' % (dtdextemp, len(dates)))
     temp =  worker(dtstr)
+    dtdextemp += 1
 
 
 # ------------------------------------------------------------------------------
@@ -116,5 +119,8 @@ def worker(dtstr, overwrite=False, verbose=1):
     else:
         print ('fname: %s, overwrite: %s, os.path.isfile(fname): %s' % (fname, overwrite, os.path.isfile(fname)))
 
+dtdextemp = 0
 for dtstr in dates:
+    print ('%s/%s' % (dtdextemp, len(dates)))
     temp =  worker(dtstr)
+    dtdextemp += 1
