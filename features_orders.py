@@ -202,10 +202,10 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         print ('running features for cbbo')
-        if verbose > 2:
-            print ('feature params:')
-            for paramtemp in params:
-                print (paramtemp)
+    if verbose > 2:
+        print ('feature params:')
+        for paramtemp in params:
+            print (paramtemp)
 
     if verbose > 0:
         t2 = time.time()
@@ -215,6 +215,10 @@ def features(symbol, date_string, venue = 'TSX',
     bkday.cache()
     bkdaygrouped = bkday.groupBy('timed').agg(aggparams).toPandas()
     bkday.unpersist()
+
+    if verbose > 2:
+        print ('bkdaygrouped.head()')
+        print (bkdaygrouped.head())
 
     renameparams = {'%s(%s)' % (partemp['aggfn'], partemp['colname']): partemp['covname'] for partemp in params}
     bkdaygrouped = bkdaygrouped.rename(renameparams)
