@@ -117,8 +117,10 @@ def features(symbol, date_string, venue = 'TSX',
 
     # set up key for output dictionary, trading times is in US/Eastern
     freq = '1H' if tsunit == 'HOUR' else '1min' if tsunit == 'MINUTE' else '1S' if tsunit == 'SECOND' else None
-    tradingtimes = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
-    tradingtimes.sort()
+    # tradingtimes = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
+    # tradingtimes.sort()
+    tradingtimesdf = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
+    tradingtimesdf.sort()
 
     
     # --------------------------------------------------------------------------
@@ -134,15 +136,15 @@ def features(symbol, date_string, venue = 'TSX',
         print ('get orders for %s done in: %.2f norders: %d' %\
             (date_string, time.time()-t0, dfday.count()))
 
-    # utc stuff is from dfday where there are observations
-    dfday.cache()
-    tradingtimesdf = dfday.select('timed').distinct().toPandas()
-    dfday.unpersist()
+    # # utc stuff is from dfday where there are observations
+    # dfday.cache()
+    # tradingtimesdf = dfday.select('timed').distinct().toPandas()
+    # dfday.unpersist()
 
-    tradingtimesdf = [val for index, val in tradingtimesdf['timed'].iteritems()]
-    tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
-    tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
-    tradingtimesdf.sort()
+    # tradingtimesdf = [val for index, val in tradingtimesdf['timed'].iteritems()]
+    # tradingtimesdf = [utils.utctimestamp_to_tz(dt, 'US/Eastern') for dt in tradingtimesdf]
+    # tradingtimesdf = [dt for dt in tradingtimesdf if dt >= tradingtimes[0]]
+    # tradingtimesdf.sort()
     
 
     if verbose > 1:
