@@ -179,11 +179,11 @@ def features(symbol, date_string, venue = 'TSX',
            ('first_value', 'spread'),
            ('first_value', 'mid_price'),
            ('first_value', 'weighted_price'),
-           ('last_value', 'bid_price'), 
-           ('last_value', 'ask_price'),
-           ('last_value', 'spread'),
-           ('last_value', 'mid_price'),
-           ('last_value', 'weighted_price'),
+           #('last_value', 'bid_price'), 
+           #('last_value', 'ask_price'),
+           #('last_value', 'spread'),
+           #('last_value', 'mid_price'),
+           #('last_value', 'weighted_price'),
            ('sum', 'mid_price_diff2'),
            ('mean', 'mid_price_diff2'),
            ('stddev', 'mid_price_diff2'),
@@ -204,24 +204,25 @@ def features(symbol, date_string, venue = 'TSX',
             for paramtemp in params:
                 print (paramtemp)
 
+    if verbose > 0:
+        t2 = time.time()
 
-    def worker(colname, aggfn, covname, verbose):
-        if verbose > 0:
-            t2 = time.time()
-        dftemp = bkday.groupBy('timed').agg({colname: aggfn}).toPandas()
-        if verbose > 0:
-            print ('%s(%s) done in: %.2f' % (aggfn, colname, time.time()-t2))
-            if verbose > 1:
-                print ('type(dftemp):', type(dftemp))
-                print ('first 5 rows of features')
-                print (dftemp.head(5))
-        return covname, dftemp
-
-    resl = map(lambda x: worker(**x), params)
-    bookfeaturesbycovname = {k: v for k, v in resl}
-    bookfeaturesbycovname['maxbid'] = bookfeaturesbycovname['bid_price']
-    bookfeaturesbycovname['minask'] = bookfeaturesbycovname['ask_price']
+    aggparams = {partemp['aggfn']: partemp['colname'] for partemp in params}
+    bkdaygrouped = bkday.groupBy('timed').agg(aggparams).toPandas()
     bkday.unpersist()
+
+    renameparams = {'%s(%s)' % (partemp['aggfn'], partemp['colname']), partemp['covname']}
+    bkdaygrouped = bkdaygrouped.rename(renameparams)
+    bkdaygrouped['maxbid'] = bkdaygrouped['bid_price']
+    bkdaygrouped['minask'] = bkdaygrouped['ask_price']
+
+    bookfeaturesbycovname = {}
+    for colname in bkdaygrouped:
+        if colname != 'timed':
+            bookfeaturesbycovname[colname] = bkdaygrouped[['timed', colname]]
+
+    if verbose > 0:
+        print ('bookfeaturesbycovname for cbbo collected in %s' % (time.time()-t1))
 
 
     # --------------------------------------------------------------------------
