@@ -274,6 +274,7 @@ def features(symbol, date_string, venue = 'TSX',
     touchdf = touchdf.withColumn('timed', touchdf.timedstr.cast("timestamp"))
     dfday = dfday.join(touchdf, "timed")
     dfday = dfday.withColumn('ABS(book_change)', F.abs(dfday.book_change))
+    dfday = dfday.orderBy("timed", ascending=True)
     dfday.cache()
 
     if verbose > 0:
