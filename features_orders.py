@@ -212,7 +212,7 @@ def features(symbol, date_string, venue = 'TSX',
     bkdaygrouped = bkday.groupBy('timed').agg(aggparams).toPandas()
     bkday.unpersist()
 
-    renameparams = {'%s(%s)' % (partemp['aggfn'], partemp['colname']): partemp['covname']}
+    renameparams = {'%s(%s)' % (partemp['aggfn'], partemp['colname']): partemp['covname'] for partemp in params}
     bkdaygrouped = bkdaygrouped.rename(renameparams)
     bkdaygrouped['maxbid'] = bkdaygrouped['bid_price']
     bkdaygrouped['minask'] = bkdaygrouped['ask_price']
