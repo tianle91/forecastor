@@ -248,6 +248,9 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     # create touch dataframe
     # --------------------------------------------------------------------------
+    if verbose > 0:
+        print ('joining touch columns with orders')
+
     dfday = dailyorders(symbol, date_string, venue, tsunit)
     dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
 
@@ -288,8 +291,12 @@ def features(symbol, date_string, venue = 'TSX',
         k += '_at_touch' if touch else ''
         return k
 
+
     def worker(ordtype, side, touch, verbose):
-        ttemp = time.time()
+        if verbose > 0:
+            ttemp = time.time()
+            print ('filter ordtype: %s, side: %s, touch: %s' % (ordtype, side, touch))
+
         filstr = getordersfilstr(ordtype, side, touch)
         k = covnamer(ordtype, side, touch)
         if verbose > 0:
@@ -301,12 +308,14 @@ def features(symbol, date_string, venue = 'TSX',
             dftemp = dftemp.filter(filstr)
         aggparams = {'*': 'COUNT', 'ABS(book_change)': 'sum'}
         dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
+        dftemp = dftemp.rename(columns={'COUNT(*)': 'number', 'SUM(ABS(book_change))': 'volume'})
 
         if verbose > 0:
-            print ('orders: ordtype: %s, side: %s, touch: %s done in: %.2f' % (ordtype, side, touch, time.time()-ttemp))
+            print ('orders: groupby done in: %.2f' % (time.time()-ttemp))
             if verbose > 1:
                 print (dftemp.head(5))
         return k, dftemp
+
 
     params = [
         {'ordtype': ordtype, 
