@@ -292,7 +292,7 @@ def features(symbol, date_string, venue = 'TSX',
         return k
 
 
-    def worker(ordtype, side, touch, verbose):
+    def worker(ordtype, side, touch):
         if verbose > 0:
             ttemp = time.time()
             print ('orders: filter ordtype: %s, side: %s, touch: %s' % (ordtype, side, touch))
@@ -320,8 +320,7 @@ def features(symbol, date_string, venue = 'TSX',
     params = [
         {'ordtype': ordtype, 
             'side': side, 
-            'touch': touch,
-            'verbose': verbose-1}
+            'touch': touch}
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for touch in [False, True]
