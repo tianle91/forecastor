@@ -64,13 +64,10 @@ class TXLoader(object):
             print ('alldays:', alldays)
 
         valsresl = [self.unpackvalues_singleday(dtstr) for dtstr in alldays]
+        out = np.array(valsresl)
+
         if self.verbose > 0:
             print ('len(valsresl): %s' % (len(valsresl)))
-            for resltemp in valsresl:
-                print ('len(resltemp):', len(resltemp))
-
-        out = np.array(valsresl)
-        if self.verbose > 0:
             print ('out.shape', out.shape)
 
         return out
