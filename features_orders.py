@@ -285,56 +285,50 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     # orders features
     # --------------------------------------------------------------------------
-    def covnamer(ordtype, side, touch):
-        k = 'orders_type:%s_side:%s' %\
-            (ordtype if ordtype is not None else 'All', 
-                side if side is not None else 'All')
-        k += '_at_touch' if touch else ''
-        return k
-
-
-    def worker(ordtype, side, touch):
+    def worker(ordtype, side, touch, counttype):
         if verbose > 0:
             ttemp = time.time()
-            print ('orders: filter ordtype: %s, side: %s, touch: %s' % (ordtype, side, touch))
-
-        filstr = getordersfilstr(ordtype, side, touch)
-        k = covnamer(ordtype, side, touch)
-        if verbose > 0:
-            t3 = time.time()
-            print ('k:%s\nfilstr:%s' % (k, filstr))
+            print ('orders: filter ordtype: %s, side: %s, touch: %s, counttype: %s' % (ordtype, side, touch, counttype))
 
         dftemp = dfday
+		filstr = getordersfilstr(ordtype, side, touch, counttype)
         if filstr != '':
             dftemp = dftemp.filter(filstr)
-        aggparams = {'*': 'COUNT', 'ABS(book_change)': 'sum'}
-        dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
-        dftemp = dftemp.rename(columns={'count(1)': 'number', 'sum(ABS(book_change))': 'volume'})
+        
+        if counttype = 'volume':
+        	aggparams = {'ABS(book_change)': 'sum'}
+        elif counttype = 'number':
+        	aggparams = {'*': 'COUNT'}
+        else:
+        	raise ValueError('invalid counttype: %s' % (counttype))
 
+        dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
+        
         if verbose > 0:
             print ('orders: groupby done in: %.2f' % (time.time()-ttemp))
             if verbose > 1:
                 print (dftemp.head(5))
-        return k, dftemp
+
+        covname = 'orders_%s_of_%s-type_%s-side' % (counttype, orddtype, side)
+        if touch:
+        	covname += '_at-touch'
+        return covname, dftemp
 
 
     params = [
         {'ordtype': ordtype, 
             'side': side, 
-            'touch': touch}
+            'touch': touch,
+            'counttype': counttype}
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for touch in [False, True]
+        for counttype in ['volume', 'number']
     ]
 
     resl = map(lambda x: worker(**x), params)
+    orderfeaturesbycovname = {k: v for k, v in resl}
     dfday.unpersist()
-
-    orderfeaturesbycovname = {}
-    for ktemp, groupeddftemp in resl:
-        for colname in groupeddftemp:
-            if colname != 'timed':
-                orderfeaturesbycovname[ktemp+'_'+colname] = groupeddftemp[['timed', colname]]
 
     if verbose > 0:
         print ('orders: orderfeaturesbycovname done in: %.2f' % (time.time()-t5))
