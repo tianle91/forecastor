@@ -88,7 +88,7 @@ def getordersfilstr(ordtype=None, side=None, touch=False, ticks=None):
     if touch:
         if s != '':
             s += ' AND '
-        if touchticks is None:
+        if ticks is None:
             s += '''((price >= maxbid AND side == 'Buy') OR (price <= minask AND side == 'Sell'))'''
         else:
             vtmp = .01*ticks
