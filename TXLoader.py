@@ -28,7 +28,7 @@ class TXLoader(object):
     def getcovnames(self):
         date0 = self.dates[0]
         dt0 = list(self.orders[date0].keys())[0]
-        return unpack_singledt(date0, dt0)[0]
+        return self.unpack_singledt(date0, dt0)[0]
 
 
     def unpack_singledt(self, dtstr, dt):
@@ -70,3 +70,7 @@ class TXLoader(object):
                 print ('len(resltemp):', len(resltemp))
 
         out = np.array(valsresl)
+        if self.verbose > 0:
+            print ('out.shape', out.shape)
+
+        return out
