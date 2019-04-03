@@ -31,7 +31,7 @@ class TXLoader(object):
         return unpack_singledt(date0, dt0)[0]
 
 
-    def unpack_singledt(dtstr, dt):
+    def unpack_singledt(self, dtstr, dt):
         odtmp = self.orders[dtstr][dt]
         covnamesodbk, valuesodbk = unpackcovdict(odtmp['book'])
         covnamesodod, valuesodod = unpackcovdict(odtmp['orders'])
@@ -39,20 +39,24 @@ class TXLoader(object):
         covnamestx, valuestx = unpackcovdict(txtmp)
         covnamesout = list(covnamesodbk) + list(covnamesodod) + list(covnamestx)
         valuesout = list(valuesodbk) + list(valuesodod) + list(valuestx)
+
+        if self.verbose > 3:
+            print ('dtstr:%s, dt:%s len(covnamesout):%s, len(valuesout):%s' % (dtstr, dt, len(covnamesout), len(valuesout)))
         return covnamesout, valuesout
 
 
-    def unpackvalues_singleday(dtstr):
+    def unpackvalues_singleday(self, dtstr):
         alltimesinday = list(self.orders[dtstr].keys())
         alltimesinday.sort()
         resl = [self.unpack_singledt(dtstr, dt)[1] for dt in alltimesinday]
         if self.verbose > 1:
-            print ('dtstr:', dtstr)
-            print ('resl[0]:\n', resl[0])
+            print ('dtstr: %s, len(resl): %s', (dtstr, len(resl)))
+            if self.verbose > 2:
+                print ('resl[0]:\n', resl[0])
         return resl
 
 
-    def getxm(self, nanis=0):
+    def getxm(self):
 
         alldays = list(self.orders.keys())
         alldays.sort()
