@@ -295,9 +295,9 @@ def features(symbol, date_string, venue = 'TSX',
         if filstr != '':
             dftemp = dftemp.filter(filstr)
         
-        if counttype = 'volume':
+        if counttype == 'volume':
             aggparams = {'ABS(book_change)': 'sum'}
-        elif counttype = 'number':
+        elif counttype == 'number':
             aggparams = {'*': 'COUNT'}
         else:
             raise ValueError('invalid counttype: %s' % (counttype))
