@@ -333,7 +333,8 @@ def features(symbol, date_string, venue = 'TSX',
         for ordtype in [None, 'New', 'Executed']
         for side in [None, 'Buy', 'Sell']
         for counttype in ['volume', 'number']
-        for ticks in [None, 5, 10, 25, 50, 100, 250, 500, 1000]
+        #for ticks in [None, 5, 10, 25, 50, 100, 250, 500, 1000]
+        for ticks in [None, 5, 10, 50]
     ]
     params += [
         {'ordtype': ordtype, 
