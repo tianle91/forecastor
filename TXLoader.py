@@ -77,6 +77,7 @@ class TXLoader(object):
             alltimesinday.sort()
             resl = [workerinday(dtstr, dtinday) for dtinday in alltimesinday]
             if self.verbose > 1:
+                print ('dtstr:', dtstr)
                 print ('resl[0]:\n', resl[0])
             return [l for l in resl if l is not None]
 

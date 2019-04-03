@@ -216,7 +216,7 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     bookfeatures[dt][covname] = float(value)
                 except:
-                    pass
+                    print ('cbbo: not converted! covname: %s, dt: %s, value: %s' % (covname, dt, value))
 
     # fill in missing values
     for covname in bookfeaturesbycovname:
@@ -371,7 +371,7 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     ordersfeatures[dt][covname] = float(value)
                 except:
-                    pass
+                    print ('orders: not converted! covname: %s, dt: %s, value: %s' % (covname, dt, value))
               
     if verbose > 0:
         print ('orders: all done in: %.2f' % (time.time()-t4))
