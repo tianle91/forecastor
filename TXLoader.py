@@ -5,35 +5,9 @@ import numpy as np
 import pandas as pd
 
 
-def flattendic_orders(d):
-    out = None
-    if d['orders'] is not None:
-        out = [d['orders'][k] for k in d['orders']]
-        out += [d['book'][k] for k in d['book']]
-    return out
-    
-def flattendic_trades(d):
-    out = None
-    if d is not None:
-        out = [d[k] for k in d]
-    return out
-
-def flattencovname_orders(d):
-    out = []
-    if d['orders'] is not None and d['book'] is not None:
-        out = list(d['orders'].keys())
-        out += list(d['book'].keys())
-    return out
-
-def flattencovname_trades(d):
-    out = []
-    if d is not None:
-        out = list(d.keys())
-    return out
-
-def toflatlist(flatords, flattrades):
-    if flatords is not None and flattrades is not None:
-        return flatords + flattrades
+def unpackcovdict(d):
+    covnames, values = zip(*[(k, v) for k, v in d.items()])
+    return covnames, values
 
 
 class TXLoader(object):
@@ -53,39 +27,42 @@ class TXLoader(object):
 
     def getcovnames(self):
         date0 = self.dates[0]
-        time0 = list(self.orders[date0].keys())[0]
-        out = flattencovname_orders(self.orders[date0][time0])
-        out += flattencovname_trades(self.trades[date0][time0])
-        return out
+        dt0 = list(self.orders[date0].keys())[0]
+        return unpack_singledt(date0, dt0)[0]
+
+
+    def unpack_singledt(dtstr, dt):
+        odtmp = self.orders[dtstr][dt]
+        covnamesodbk, valuesodbk = unpackcovdict(odtmp['book'])
+        covnamesodod, valuesodod = unpackcovdict(odtmp['orders'])
+        txtmp = self.trades[dtstr][dt]
+        covnamestx, valuestx = unpackcovdict(txtmp)
+        covnamesout = list(covnamesodbk) + list(covnamesodod) + list(covnamestx)
+        valuesout = list(valuesodbk) + list(valuesodod) + list(valuestx)
+        return covnamesout, valuesout
+
+
+    def unpackvalues_singleday(dtstr):
+        alltimesinday = list(self.orders[dtstr].keys())
+        alltimesinday.sort()
+        resl = [self.unpack_singledt(dtstr, dt)[1] for dt in alltimesinday]
+        if self.verbose > 1:
+            print ('dtstr:', dtstr)
+            print ('resl[0]:\n', resl[0])
+        return resl
 
 
     def getxm(self, nanis=0):
 
         alldays = list(self.orders.keys())
-        alldays = [pd.to_datetime(dtstr) for dtstr in alldays]
         alldays.sort()
         if self.verbose > 0:
             print ('alldays:', alldays)
 
-        def workerinday(dtstr, dtinday):
-            flatords = self.orders[dtstr][dtinday]
-            flattrades = self.trades[dtstr][dtinday]
-            return toflatlist(flattendic_orders(flatords), flattendic_trades(flattrades))
-
-        def worker(dtstr):
-            alltimesinday = list(self.orders[dtstr].keys())
-            alltimesinday.sort()
-            resl = [workerinday(dtstr, dtinday) for dtinday in alltimesinday]
-            if self.verbose > 1:
-                print ('dtstr:', dtstr)
-                print ('resl[0]:\n', resl[0])
-            return [l for l in resl if l is not None]
-
-        resll = [worker(dt.strftime('%Y-%m-%d')) for dt in alldays]
-        resll = [l for l in resll if len(l) > 0]
+        resl = [self.unpack_singleday(dtstr) for dtstr in alldays]
         if self.verbose > 0:
-            print ('len(resll): %s' % (len(resll)))
-            for resl in resll:
-                print ('len(resl):', len(resl))
+            print ('len(resl): %s' % (len(resl)))
+            for resltemp in resl:
+                print ('len(resltemp):', len(resltemp))
 
-        return np.array(resll)
+        out = np.array(resl)
