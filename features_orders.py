@@ -291,7 +291,7 @@ def features(symbol, date_string, venue = 'TSX',
             print ('orders: filter ordtype: %s, side: %s, touch: %s, counttype: %s' % (ordtype, side, touch, counttype))
 
         dftemp = dfday
-        filstr = getordersfilstr(ordtype, side, touch, counttype)
+        filstr = getordersfilstr(ordtype, side, touch)
         if filstr != '':
             dftemp = dftemp.filter(filstr)
         
