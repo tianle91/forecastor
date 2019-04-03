@@ -57,9 +57,9 @@ def features(symbol, date_string, venue = 'TSX',
     tradingtimesdf.sort()
 
     if verbose > 1:
-        print ('len(tradingtimesdf):', len(tradingtimesdf))
+        print ('trades: len(tradingtimesdf):', len(tradingtimesdf))
         if verbose > 2:
-            print ('trading times in dfday in US/Eastern:')
+            print ('trades: trading times in dfday in US/Eastern:')
             print ([str(dt) for dt in tradingtimesdf])
 
     
@@ -75,7 +75,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     if verbose > 0:
         t1 = time.time()
-        print ('get trades for %s done in: %.2f ntrades: %d' %\
+        print ('trades: get df %s done in: %.2f ntrades: %d' %\
             (date_string, time.time()-t0, dfday.count()))
 
 
@@ -83,7 +83,7 @@ def features(symbol, date_string, venue = 'TSX',
     # trades features
     # --------------------------------------------------------------------------
     if verbose > 0:
-        print ('doing features for trades')
+        print ('trades: doing features')
 
     txfeaturesparams = [
         ('count', '*'),
@@ -107,9 +107,9 @@ def features(symbol, date_string, venue = 'TSX',
     ]
 
     if verbose > 2:
-        print ('txfeaturesparams:')
+        print ('trades: txfeaturesparams:')
         for aggfn, colname in txfeaturesparams:
-            print ('aggfn: %s\tcolname: %s' % (aggfn, colname))
+            print ('\taggfn: %s\tcolname: %s' % (aggfn, colname))
 
     dfday.cache()
     tradesfeaturesbycovname = {}
@@ -123,10 +123,11 @@ def features(symbol, date_string, venue = 'TSX',
     dfday.unpersist()
 
     if verbose > 0:
-        print ('\ttrades features done in: %.2f' % (time.time()-t1))
+        print ('\ttrades: tradesfeaturesbycovname done in: %.2f' % (time.time()-t1))
 
-
-    # change to dt key    
+    # --------------------------------------------------------------------------
+    # change to dt key
+    # --------------------------------------------------------------------------
     dummydict = {}
     for covname in tradesfeaturesbycovname:
         dummydict[covname] = None
@@ -141,14 +142,12 @@ def features(symbol, date_string, venue = 'TSX',
                 try:
                     tradesfeatures[dt]['trades_' + covname] = float(value)
                 except:
-                    #print ('covname: %s value: %s not converted!' % (covname, value))
-                    #print (row)
                     pass
 
     
     if verbose > 0:
-        print ('number of covariates in trades:', len(tradesfeatures[tradingtimesdf[0]]))
-        print ('all done in: %.2f' % (time.time()-t0))
+        print ('trades: number of covariates:', len(tradesfeatures[tradingtimesdf[0]]))
+        print ('trades: all done in: %.2f' % (time.time()-t0))
 
     return tradesfeatures
 
