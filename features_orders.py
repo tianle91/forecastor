@@ -303,9 +303,9 @@ def features(symbol, date_string, venue = 'TSX',
 
         # get covariate grouped by timed
         ## aggregate type
-        if counttype == 'volume':
+        if counttype == 'Volume':
             aggparams = {'ABS(book_change)': 'sum'}
-        elif counttype == 'number':
+        elif counttype == 'Number':
             aggparams = {'*': 'COUNT'}
         else:
             raise ValueError('invalid counttype: %s' % (counttype))
@@ -332,7 +332,7 @@ def features(symbol, date_string, venue = 'TSX',
             'counttype': counttype}
         for ordtype in [None, 'New', 'Executed']
         for side in [None, 'Buy', 'Sell']
-        for counttype in ['volume', 'number']
+        for counttype in ['Volume', 'Number']
         #for ticks in [None, 5, 10, 25, 50, 100, 250, 500, 1000]
         for ticks in [None, 5, 10, 50]
     ]
@@ -344,7 +344,7 @@ def features(symbol, date_string, venue = 'TSX',
             'counttype': counttype}
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
-        for counttype in ['volume', 'number']
+        for counttype in ['Volume', 'Number']
     ]
 
 
