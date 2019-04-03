@@ -123,6 +123,7 @@ def features(symbol, date_string, venue = 'TSX',
     freq = '1H' if tsunit == 'HOUR' else '1min' if tsunit == 'MINUTE' else '1S' if tsunit == 'SECOND' else None
     tradingtimesdf = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
     tradingtimesdf.sort()
+    tdelta = tradingtimesdf[-1]-tradingtimesdf[-2]
 
     if verbose > 1:
         print ('len(tradingtimesdf):', len(tradingtimesdf))
@@ -140,7 +141,7 @@ def features(symbol, date_string, venue = 'TSX',
 
     # get all consolidated book changes prior to tradingtimes[-1]
     bkday = dailycbbo(symbol, date_string, tsunit)
-    bkday = utils.subsetbytime(bkday, tradingtimesdf[-1])
+    bkday = utils.subsetbytime(bkday, tradingtimesdf[-1]+tdelta)
     bkday.cache()
 
     if verbose > 0:
@@ -270,7 +271,7 @@ def features(symbol, date_string, venue = 'TSX',
         print ('touch df done in: %.2f' % (t4-t3))
 
     dfday = dailyorders(symbol, date_string, venue, tsunit)
-    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
+    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1]+tdelta)
     dfday.cache()
 
     if verbose > 0:

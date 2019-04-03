@@ -55,6 +55,7 @@ def features(symbol, date_string, venue = 'TSX',
     freq = '1H' if tsunit == 'HOUR' else '1min' if tsunit == 'MINUTE' else '1S' if tsunit == 'SECOND' else None
     tradingtimesdf = utils.tradingtimes(date_string, tstart_string, tend_string, freq, tz='US/Eastern')
     tradingtimesdf.sort()
+    tdelta = tradingtimesdf[-1]-tradingtimesdf[-2]
 
     if verbose > 1:
         print ('trades: len(tradingtimesdf):', len(tradingtimesdf))
@@ -71,7 +72,8 @@ def features(symbol, date_string, venue = 'TSX',
 
     # get all transactions prior to tradingtimes[-1]
     dfday = dailytrades(symbol, date_string, tsunit)
-    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1])
+
+    dfday = utils.subsetbytime(dfday, tradingtimesdf[-1]+tdelta)
 
     if verbose > 0:
         t1 = time.time()
