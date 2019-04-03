@@ -69,7 +69,7 @@ def dailycbbo(symbol, date_string, tsunit):
     return dftemp
 
 
-def getordersfilstr(ordtype=None, side=None, touch=False):
+def getordersfilstr(ordtype=None, side=None, touch=False, ticks=None):
     '''string for ordersdf.filter(string)
     Args:
         ordtype: one of [None, 'New', 'Cancelled', 'Executed']
@@ -88,7 +88,11 @@ def getordersfilstr(ordtype=None, side=None, touch=False):
     if touch:
         if s != '':
             s += ' AND '
-        s += '''((price >= maxbid AND side == 'Buy') OR (price <= minask AND side == 'Sell'))'''
+        if touchticks is None:
+            s += '''((price >= maxbid AND side == 'Buy') OR (price <= minask AND side == 'Sell'))'''
+        else:
+            vtmp = .01*ticks
+            s += '''((price >= (maxbid-%f) AND side == 'Buy') OR (price <= (minask+%f) AND side == 'Sell'))''' % (vtmp, vtmp)
 
     if side in ['Buy', 'Sell']:
         if s != '':
@@ -153,15 +157,30 @@ def features(symbol, date_string, venue = 'TSX',
            ('first_value', 'spread'),
            ('first_value', 'mid_price'),
            ('first_value', 'weighted_price'),
+           ('last_value', 'bid_price'), 
+           ('last_value', 'ask_price'), 
+           ('last_value', 'spread'),
+           ('last_value', 'mid_price'),
+           ('last_value', 'weighted_price'),
+           ('max', 'bid_price'),
+           ('max', 'ask_price'),
+           ('max', 'spread'),
+           ('max', 'mid_price'),
+           ('max', 'weighted_price'),
+           ('min', 'bid_price'),
+           ('min', 'ask_price'),
+           ('min', 'spread'),
+           ('min', 'mid_price'),
+           ('min', 'weighted_price'),
            ('sum', 'mid_price_diff2'),
-           ('mean', 'mid_price_diff2'),
-           ('stddev', 'mid_price_diff2'),
-           ('mean', 'mid_price_logreturn'),
-           ('stddev', 'mid_price_logreturn'),
            ('sum', 'weighted_price_diff2'),
+           ('mean', 'mid_price_diff2'),
+           ('mean', 'mid_price_logreturn'),
            ('mean', 'weighted_price_diff2'),
-           ('stddev', 'weighted_price_diff2'),
            ('mean', 'weighted_price_logreturn'),
+           ('stddev', 'mid_price_diff2'),
+           ('stddev', 'mid_price_logreturn'),
+           ('stddev', 'weighted_price_diff2'),
            ('stddev', 'weighted_price_logreturn')
            ]
         ]
@@ -285,46 +304,66 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------
     # orders features
     # --------------------------------------------------------------------------
-    def worker(ordtype, side, touch, counttype):
-        if verbose > 0:
+    def worker(ordtype, side, touch, ticks, counttype):
+        if verbose > 3:
             ttemp = time.time()
-            print ('orders: filter ordtype: %s, side: %s, touch: %s, counttype: %s' % (ordtype, side, touch, counttype))
-
-        dftemp = dfday
-        filstr = getordersfilstr(ordtype, side, touch)
-        if filstr != '':
-            dftemp = dftemp.filter(filstr)
+            print ('orders: filter ordtype: %s, side: %s, touch: %s, ticks: %s, counttype: %s' % (ordtype, side, touch, ticks, counttype))
         
+        # covariate name
+        covname = 'orders_%s_of_%s-type_%s-side' % (counttype, ordtype, side)
+        if touch:
+            covname += '_at-touch'
+            if ticks is not None:
+                covname += '-%s-ticks' % (ticks)
+
+        # filter string
+        filstr = getordersfilstr(ordtype, side, touch, ticks)
+
+        # get covariate grouped by timed
+        ## aggregate type
         if counttype == 'volume':
             aggparams = {'ABS(book_change)': 'sum'}
         elif counttype == 'number':
             aggparams = {'*': 'COUNT'}
         else:
             raise ValueError('invalid counttype: %s' % (counttype))
-
+        ## filter string
+        dftemp = dfday
+        if filstr != '':
+            dftemp = dftemp.filter(filstr)
+        ## do groupby
         dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
         
-        if verbose > 0:
+        if verbose > 3:
             print ('orders: groupby done in: %.2f' % (time.time()-ttemp))
             if verbose > 1:
                 print (dftemp.head(5))
 
-        covname = 'orders_%s_of_%s-type_%s-side' % (counttype, ordtype, side)
-        if touch:
-            covname += '_at-touch'
         return covname, dftemp
 
 
     params = [
         {'ordtype': ordtype, 
             'side': side, 
-            'touch': touch,
+            'touch': True,
+            'ticks': ticks,
+            'counttype': counttype}
+        for ordtype in [None, 'New', 'Executed']
+        for side in [None, 'Buy', 'Sell']
+        for counttype in ['volume', 'number']
+        for ticks in [None, 5, 10, 25, 50, 100, 250, 500, 1000]
+    ]
+    params += [
+        {'ordtype': ordtype, 
+            'side': side, 
+            'touch': False,
+            'ticks': None,
             'counttype': counttype}
         for ordtype in [None, 'New', 'Cancelled', 'Executed']
         for side in [None, 'Buy', 'Sell']
-        for touch in [False, True]
         for counttype in ['volume', 'number']
     ]
+
 
     resl = map(lambda x: worker(**x), params)
     orderfeaturesbycovname = {k: v for k, v in resl}
