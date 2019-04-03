@@ -291,16 +291,16 @@ def features(symbol, date_string, venue = 'TSX',
             print ('orders: filter ordtype: %s, side: %s, touch: %s, counttype: %s' % (ordtype, side, touch, counttype))
 
         dftemp = dfday
-		filstr = getordersfilstr(ordtype, side, touch, counttype)
+        filstr = getordersfilstr(ordtype, side, touch, counttype)
         if filstr != '':
             dftemp = dftemp.filter(filstr)
         
         if counttype = 'volume':
-        	aggparams = {'ABS(book_change)': 'sum'}
+            aggparams = {'ABS(book_change)': 'sum'}
         elif counttype = 'number':
-        	aggparams = {'*': 'COUNT'}
+            aggparams = {'*': 'COUNT'}
         else:
-        	raise ValueError('invalid counttype: %s' % (counttype))
+            raise ValueError('invalid counttype: %s' % (counttype))
 
         dftemp = dftemp.groupBy('timed').agg(aggparams).toPandas()
         
@@ -311,7 +311,7 @@ def features(symbol, date_string, venue = 'TSX',
 
         covname = 'orders_%s_of_%s-type_%s-side' % (counttype, orddtype, side)
         if touch:
-        	covname += '_at-touch'
+            covname += '_at-touch'
         return covname, dftemp
 
 
