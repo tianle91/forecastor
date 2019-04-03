@@ -146,64 +146,51 @@ def features(symbol, date_string, venue = 'TSX',
         print ('cbbo: df %s done in: %.2f nrows: %d' %\
             (date_string, time.time()-t0, bkday.count()))
 
+    bkfeaturesparaml = [
+        ('first_value', 'bid_price'), 
+        ('first_value', 'ask_price'), 
+        ('first_value', 'spread'),
+        ('first_value', 'mid_price'),
+        ('first_value', 'weighted_price'),
+        ('last_value', 'bid_price'), 
+        ('last_value', 'ask_price'), 
+        ('last_value', 'spread'),
+        ('last_value', 'mid_price'),
+        ('last_value', 'weighted_price'),
+        ('max', 'bid_price'),
+        ('max', 'ask_price'),
+        ('max', 'spread'),
+        ('max', 'mid_price'),
+        ('max', 'weighted_price'),
+        ('min', 'bid_price'),
+        ('min', 'ask_price'),
+        ('min', 'spread'),
+        ('min', 'mid_price'),
+        ('min', 'weighted_price'),
+        ('sum', 'mid_price_diff2'),
+        ('sum', 'weighted_price_diff2'),
+        ('mean', 'mid_price_diff2'),
+        ('mean', 'mid_price_logreturn'),
+        ('mean', 'weighted_price_diff2'),
+        ('mean', 'weighted_price_logreturn'),
+        ('stddev', 'mid_price_diff2'),
+        ('stddev', 'mid_price_logreturn'),
+        ('stddev', 'weighted_price_diff2'),
+        ('stddev', 'weighted_price_logreturn')
+    ]
 
-    params = [
-        {'colname': colname, 'aggfn': aggfn}
-        for aggfn, colname in [
-           ('first_value', 'bid_price'), 
-           ('first_value', 'ask_price'), 
-           ('first_value', 'spread'),
-           ('first_value', 'mid_price'),
-           ('first_value', 'weighted_price'),
-           ('last_value', 'bid_price'), 
-           ('last_value', 'ask_price'), 
-           ('last_value', 'spread'),
-           ('last_value', 'mid_price'),
-           ('last_value', 'weighted_price'),
-           ('max', 'bid_price'),
-           ('max', 'ask_price'),
-           ('max', 'spread'),
-           ('max', 'mid_price'),
-           ('max', 'weighted_price'),
-           ('min', 'bid_price'),
-           ('min', 'ask_price'),
-           ('min', 'spread'),
-           ('min', 'mid_price'),
-           ('min', 'weighted_price'),
-           ('sum', 'mid_price_diff2'),
-           ('sum', 'weighted_price_diff2'),
-           ('mean', 'mid_price_diff2'),
-           ('mean', 'mid_price_logreturn'),
-           ('mean', 'weighted_price_diff2'),
-           ('mean', 'weighted_price_logreturn'),
-           ('stddev', 'mid_price_diff2'),
-           ('stddev', 'mid_price_logreturn'),
-           ('stddev', 'weighted_price_diff2'),
-           ('stddev', 'weighted_price_logreturn')
-           ]
-        ]
-
-    if verbose > 0:
-        print ('cbbo: features')
     if verbose > 2:
-        print ('cbbo: features params:')
-        for paramtemp in params:
-            print (paramtemp)
-
-    aggparams = {partemp['colname']: partemp['aggfn'] for partemp in params}
+        print ('bkfeaturesparaml:')
+        for aggfn, colname in bkfeaturesparaml:
+            print ('aggfn: %s\tcolname: %s' % (aggfn, colname))
 
     bkday.cache()
-    bkdaygrouped = bkday.groupBy('timed').agg(aggparams).toPandas()
+    bookfeaturesbycovname = {}
+    for aggfn, colname in bkfeaturesparaml:
+        bookfeaturesbycovname['%s(%s)' % (aggfn, colname)] = bkday.groupBy('timed').agg({colname: aggfn}).toPandas()
     bkday.unpersist()
 
-    if verbose > 2:
-        print ('bkdaygrouped.head()')
-        print (bkdaygrouped.head())
-
-    bookfeaturesbycovname = {}
-    for colname in bkdaygrouped:
-        if colname != 'timed':
-            bookfeaturesbycovname[colname] = bkdaygrouped[['timed', colname]]
+    # add dummies
     bookfeaturesbycovname['maxbid'] = bookfeaturesbycovname['first_value(bid_price)']
     bookfeaturesbycovname['minask'] = bookfeaturesbycovname['first_value(ask_price)']
 
@@ -305,7 +292,7 @@ def features(symbol, date_string, venue = 'TSX',
             print ('orders: filter ordtype: %s, side: %s, touch: %s, ticks: %s, counttype: %s' % (ordtype, side, touch, ticks, counttype))
         
         # covariate name
-        covname = 'orders_%s_of_%s-type_%s-side' % (counttype, ordtype, side)
+        covname = '%s_of_%s-type_%s-side' % (counttype, ordtype, side)
         if touch:
             covname += '_at-touch'
             if ticks is not None:
@@ -394,7 +381,9 @@ def features(symbol, date_string, venue = 'TSX',
     # --------------------------------------------------------------------------   
     out = {}
     for dt in tradingtimesdf:
-        out[dt] = {'book': bookfeatures[dt], 'orders': ordersfeatures[dt]}
+        bkftdttemp = {'book_' + k: v for k, v in bookfeatures[dt].items()}
+        odftdttemp = {'orders_' + k: v for k, v in ordersfeatures[dt].items()}
+        out[dt] = {'book': bkftdttemp, 'orders': odftdttemp}
 
     if verbose > 0:
         print ('number of covariates in book:', len(out[tradingtimesdf[0]]['book']))

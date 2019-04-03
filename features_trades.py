@@ -97,45 +97,42 @@ def features(symbol, date_string, venue = 'TSX',
                 print (dftemp.head(5))
         return 'trades_%s(%s)' % (aggfn, colname), dftemp
 
-    params = [
-        {'colname': colname, 
-            'aggfn': aggfn}
-        for colname, aggfn in [
-           ('*', 'count'), 
-           ('quantity', 'mean'), 
-           ('quantity', 'stddev'),
-           ('price', 'mean'), 
-           ('price', 'stddev'), 
-           ('price', 'min'), 
-           ('price', 'max'),
-           ('price_diff2', 'sum'),
-           ('price_diff2', 'mean'),
-           ('price_diff2', 'stddev'),
-           ('logreturn', 'mean'),
-           ('logreturn', 'stddev')]
+    txfeaturesparams = [
+        ('count', '*'),
+        ('mean', 'quantity'),
+        ('mean', 'price'),
+        ('mean', 'price_diff2'),
+        ('mean', 'logreturn'),
+        ('stddev', 'quantity'),
+        ('stddev', 'price'),
+        ('stddev', 'price_diff2'),
+        ('stddev', 'logreturn'),
+        ('min', 'quantity'),
+        ('min', 'price'),
+        ('min', 'price_diff2'),
+        ('min', 'logreturn'),
+        ('max', 'quantity'),
+        ('max', 'price'),
+        ('max', 'price_diff2'),
+        ('max', 'logreturn'),
+        ('sum', 'price_diff2')
     ]
 
-    aggparams = {partemp['colname']: partemp['aggfn'] for partemp in params}
-
     dfday.cache()
-    dfdaygrouped = dfday.groupBy('timed').agg(aggparams).toPandas()
-    renameparams = {'trades_%s' % (colname) if colname != 'timed' for colname in dfdaygrouped}
-    dfdaygrouped = dfdaygrouped.rename(columns=renameparams)
-    # collect by covariate name
-    tradesfeaturesbycovname = {k: v for k, v in resl}
-    for colname in dfdaygrouped:
-        if colname != 'timed':
-            tradesfeaturesbycovname[colname] = dfdaygrouped[['timed', colname]]
+    tradesfeaturesbycovname = {}
+    for aggfn, colname in txfeaturesparams:
+        tradesfeaturesbycovname['%s(%s)' % (aggfn, colname)] = dfday.groupBy('timed').agg({colname: aggfn}).toPandas()
+
     # additional covariates
     ## vwap
     vwap = dfday.groupBy('timed').agg((F.sum(dfday.price*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['trades_vwap'] = vwap.toPandas()
+    tradesfeaturesbycovname['vol-weighted-price'] = vwap.toPandas()
     ## vol-weighted quad variation
     vwquadvar = dfday.groupBy('timed').agg((F.sum(dfday.price_diff2*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['trades_vwquadvar'] = vwquadvar.toPandas()
+    tradesfeaturesbycovname['vol-weighted-price_diff2'] = vwquadvar.toPandas()
     ## vol-weighted log return
     vwlogreturn = dfday.groupBy('timed').agg((F.sum(dfday.logreturn*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['trades_vwlogreturn'] = vwlogreturn.toPandas()
+    tradesfeaturesbycovname['vol-weighted-logreturn'] = vwlogreturn.toPandas()
     dfday.unpersist()
 
     if verbose > 0:
@@ -166,7 +163,7 @@ def features(symbol, date_string, venue = 'TSX',
         print ('number of covariates in trades:', len(tradesfeatures[tradingtimesdf[0]]))
         print ('all done in: %.2f' % (time.time()-t0))
 
-    return tradesfeatures
+    return {'trades_'+k: v for k, v in tradesfeatures.items()}
 
 
 if __name__ == '__main__':
