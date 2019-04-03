@@ -309,7 +309,7 @@ def features(symbol, date_string, venue = 'TSX',
             if verbose > 1:
                 print (dftemp.head(5))
 
-        covname = 'orders_%s_of_%s-type_%s-side' % (counttype, orddtype, side)
+        covname = 'orders_%s_of_%s-type_%s-side' % (counttype, ordtype, side)
         if touch:
             covname += '_at-touch'
         return covname, dftemp
