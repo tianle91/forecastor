@@ -140,7 +140,7 @@ def features(symbol, date_string, venue = 'TSX',
             dt = utils.utctimestamp_to_tz(dt, 'US/Eastern')
             if dt in tradesfeatures:
                 try:
-                    tradesfeatures[dt]['trades_' + covname] = float(value)
+                    tradesfeatures[dt][covname] = float(value)
                 except:
                     print ('trades: not converted! covname: %s, dt: %s, value: %s' % (covname, dt, value))
 
@@ -149,7 +149,14 @@ def features(symbol, date_string, venue = 'TSX',
         print ('trades: number of covariates:', len(tradesfeatures[tradingtimesdf[0]]))
         print ('trades: all done in: %.2f' % (time.time()-t0))
 
-    return tradesfeatures
+    # --------------------------------------------------------------------------
+    # collect and return
+    # --------------------------------------------------------------------------   
+    out = {}
+    for dt in tradingtimesdf:
+    	out[dt] = {'trades_' + k: v for k, v in tradesfeatures[dt].items()}
+    	
+    return out
 
 
 if __name__ == '__main__':

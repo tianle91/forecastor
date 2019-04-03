@@ -50,7 +50,7 @@ class TXLoader(object):
         alltimesinday.sort()
         resl = [self.unpack_singledt(dtstr, dt)[1] for dt in alltimesinday]
         if self.verbose > 1:
-            print ('dtstr: %s, len(resl): %s', (dtstr, len(resl)))
+            print ('dtstr: %s, len(resl): %s' % (dtstr, len(resl)))
             if self.verbose > 2:
                 print ('resl[0]:\n', resl[0])
         return resl
@@ -63,10 +63,10 @@ class TXLoader(object):
         if self.verbose > 0:
             print ('alldays:', alldays)
 
-        resl = [self.unpack_singleday(dtstr) for dtstr in alldays]
+        valsresl = [self.unpackvalues_singleday(dtstr) for dtstr in alldays]
         if self.verbose > 0:
-            print ('len(resl): %s' % (len(resl)))
-            for resltemp in resl:
+            print ('len(valsresl): %s' % (len(valsresl)))
+            for resltemp in valsresl:
                 print ('len(resltemp):', len(resltemp))
 
-        out = np.array(resl)
+        out = np.array(valsresl)
