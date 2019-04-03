@@ -89,7 +89,7 @@ pickle.dump(dates, open(os.getcwd() + '/data/dl:%s_tl:%s_ts:%s_SYM:%s_dates.pick
 # ------------------------------------------------------------------------------
 exec(open('features_orders.py').read())
 
-def worker(dtstr, overwrite=False, verbose=1):
+def worker(dtstr, overwrite=False, verbose=verbose):
     fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_orders.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
     if overwrite or not os.path.isfile(fname):
         print ('caching fname: %s' % (fname))
@@ -110,7 +110,7 @@ for dtstr in dates:
 # ------------------------------------------------------------------------------
 exec(open('features_trades.py').read())
 
-def worker(dtstr, overwrite=False, verbose=1):
+def worker(dtstr, overwrite=False, verbose=verbose):
     fname = os.getcwd() + '/data/tl:%s_ts:%s_dt:%s_SYM:%s_trades.pickle.gz' % (timelenname, tsunit, dtstr, symbol)
     if overwrite or not os.path.isfile(fname):
         print ('caching fname: %s' % (fname))
