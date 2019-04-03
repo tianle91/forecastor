@@ -85,18 +85,6 @@ def features(symbol, date_string, venue = 'TSX',
     if verbose > 0:
         print ('doing features for trades')
 
-    def worker(colname, aggfn, verbose):
-        if verbose > 0:
-            t2 = time.time()
-
-        
-
-        if verbose > 0:
-            print ('done in: %.2f' % (time.time()-t2))
-            if verbose > 1:
-                print (dftemp.head(5))
-        return 'trades_%s(%s)' % (aggfn, colname), dftemp
-
     txfeaturesparams = [
         ('count', '*'),
         ('mean', 'quantity'),
@@ -118,21 +106,20 @@ def features(symbol, date_string, venue = 'TSX',
         ('sum', 'price_diff2')
     ]
 
+    if verbose > 2:
+        print ('txfeaturesparams:')
+        for aggfn, colname in txfeaturesparams:
+            print ('aggfn: %s\tcolname: %s' % (aggfn, colname))
+
     dfday.cache()
     tradesfeaturesbycovname = {}
     for aggfn, colname in txfeaturesparams:
         tradesfeaturesbycovname['%s(%s)' % (aggfn, colname)] = dfday.groupBy('timed').agg({colname: aggfn}).toPandas()
 
     # additional covariates
-    ## vwap
-    vwap = dfday.groupBy('timed').agg((F.sum(dfday.price*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['vol-weighted-price'] = vwap.toPandas()
-    ## vol-weighted quad variation
-    vwquadvar = dfday.groupBy('timed').agg((F.sum(dfday.price_diff2*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['vol-weighted-price_diff2'] = vwquadvar.toPandas()
-    ## vol-weighted log return
-    vwlogreturn = dfday.groupBy('timed').agg((F.sum(dfday.logreturn*dfday.quantity)/F.sum(dfday.quantity)))
-    tradesfeaturesbycovname['vol-weighted-logreturn'] = vwlogreturn.toPandas()
+    tradesfeaturesbycovname['vol-weighted-price']       = dfday.groupBy('timed').agg((F.sum(dfday.quantity*dfday.price      )/F.sum(dfday.quantity))).toPandas()
+    tradesfeaturesbycovname['vol-weighted-price_diff2'] = dfday.groupBy('timed').agg((F.sum(dfday.quantity*dfday.price_diff2)/F.sum(dfday.quantity))).toPandas()
+    tradesfeaturesbycovname['vol-weighted-logreturn']   = dfday.groupBy('timed').agg((F.sum(dfday.quantity*dfday.logreturn  )/F.sum(dfday.quantity))).toPandas()
     dfday.unpersist()
 
     if verbose > 0:
