@@ -31,7 +31,7 @@ class TXLoader(object):
         return self.unpack_singledt(date0, dt0)[0]
 
 
-    def unpack_singledt(self, dtstr, dt):
+    def unpack_singledt(self, dtstr, dt, verbose=0):
         odtmp = self.orders[dtstr][dt]
         covnamesodbk, valuesodbk = unpackcovdict(odtmp['book'])
         covnamesodod, valuesodod = unpackcovdict(odtmp['orders'])
@@ -40,34 +40,38 @@ class TXLoader(object):
         covnamesout = list(covnamesodbk) + list(covnamesodod) + list(covnamestx)
         valuesout = list(valuesodbk) + list(valuesodod) + list(valuestx)
 
-        if self.verbose > 3:
+        if verbose > 0:
             print ('dtstr:%s, dt:%s len(covnamesout):%s, len(valuesout):%s' % (dtstr, dt, len(covnamesout), len(valuesout)))
         return covnamesout, valuesout
 
 
-    def unpackvalues_singleday(self, dtstr):
+    def unpackvalues_singleday(self, dtstr, verbose=0):
         alltimesinday = list(self.orders[dtstr].keys())
         alltimesinday.sort()
-        resl = [self.unpack_singledt(dtstr, dt)[1] for dt in alltimesinday]
-        if self.verbose > 1:
+        resl = [self.unpack_singledt(dtstr, dt, verbose=verbose-1)[1] for dt in alltimesinday]
+        if verbose > 0:
             print ('dtstr: %s, len(resl): %s' % (dtstr, len(resl)))
-            if self.verbose > 2:
+            if verbose > 1:
                 print ('resl[0]:\n', resl[0])
         return resl
 
 
     def getxm(self):
 
+        if self.verbose > 0:
+        	t0 = time.time()
+        	print ('getting xm...')
+
         alldays = list(self.orders.keys())
         alldays.sort()
-        if self.verbose > 0:
+
+        if self.verbose > 1:
             print ('alldays:', alldays)
 
-        valsresl = [self.unpackvalues_singleday(dtstr) for dtstr in alldays]
-        out = np.array(valsresl)
+        resl = [self.unpackvalues_singleday(dtstr, verbose=self.verbose-1) for dtstr in alldays]
+        out = np.array(resl)
 
         if self.verbose > 0:
-            print ('len(valsresl): %s' % (len(valsresl)))
-            print ('out.shape', out.shape)
+            print ('done in: %.2f, out.shape: %s' % (time.time()-t0, out.shape))
 
         return out
