@@ -148,9 +148,7 @@ def features(symbol, date_string, venue = 'TSX',
 
 
     params = [
-        {'colname': colname, 
-            'aggfn': aggfn, 
-            'covname': colname if aggfn == 'first_value' else 'cbbo_%s(%s)' % (aggfn, colname)}
+        {'colname': colname, 'aggfn': aggfn}
         for aggfn, colname in [
            ('first_value', 'bid_price'), 
            ('first_value', 'ask_price'), 
@@ -198,11 +196,6 @@ def features(symbol, date_string, venue = 'TSX',
     bkdaygrouped = bkday.groupBy('timed').agg(aggparams).toPandas()
     bkday.unpersist()
 
-    renameparams = {'%s(%s)' % (partemp['aggfn'], partemp['colname']): partemp['covname'] for partemp in params}
-    bkdaygrouped = bkdaygrouped.rename(columns=renameparams)
-    bkdaygrouped['maxbid'] = bkdaygrouped['bid_price']
-    bkdaygrouped['minask'] = bkdaygrouped['ask_price']
-
     if verbose > 2:
         print ('bkdaygrouped.head()')
         print (bkdaygrouped.head())
@@ -211,6 +204,8 @@ def features(symbol, date_string, venue = 'TSX',
     for colname in bkdaygrouped:
         if colname != 'timed':
             bookfeaturesbycovname[colname] = bkdaygrouped[['timed', colname]]
+    bookfeaturesbycovname['maxbid'] = bookfeaturesbycovname['first_value(bid_price)']
+    bookfeaturesbycovname['minask'] = bookfeaturesbycovname['first_value(ask_price)']
 
     if verbose > 0:
         t2 = time.time()
