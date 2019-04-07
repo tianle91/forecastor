@@ -75,4 +75,4 @@ class TXLoader(object):
         if self.verbose > 0:
             print ('done in: %.2f, out.shape: %s' % (time.time()-t0, out.shape))
 
-        return out
+        return out.astype(float)
