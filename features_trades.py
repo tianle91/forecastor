@@ -125,7 +125,7 @@ def features(symbol, date_string, venue = 'TSX',
     dfday.unpersist()
 
     if verbose > 0:
-        print ('\ttrades: tradesfeaturesbycovname done in: %.2f' % (time.time()-t1))
+        print ('trades: tradesfeaturesbycovname done in: %.2f' % (time.time()-t1))
 
     # --------------------------------------------------------------------------
     # change to dt key
