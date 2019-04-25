@@ -54,5 +54,6 @@ reconstruction_loss = ncov*mse(inputs, outputs)
 
 ae_loss = K.mean(reconstruction_loss)
 ae.add_loss(ae_loss)
-ae.compile(optimizer=Adam(lr=0.00001))
+#ae.compile(optimizer=Adam(lr=0.00001))
+ae.compile(optimizer='adam')
 ae.summary()
